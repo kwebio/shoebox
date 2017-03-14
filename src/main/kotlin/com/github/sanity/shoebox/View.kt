@@ -61,7 +61,7 @@ class View<T : Any>(val parentDirectory: Path,
     }
 
     private fun verify() {
-        for ((key, value, _) in viewOf.all) {
+        for ((key, value) in viewOf.entries) {
             val refKey = viewBy(value)
             addValue(refKey, key)
         }
@@ -69,7 +69,9 @@ class View<T : Any>(val parentDirectory: Path,
         // NOTE: We don't check for superfluous references because these are found and corrected in get()
     }
 
-    operator fun get(viewKey: String): Set<T> {
+    operator fun get(viewKey: String): Set<T> = getKeyValues(viewKey).map(KeyValue<T>::value).toSet()
+
+    fun getKeyValues(viewKey: String): Set<KeyValue<T>> {
         val reference = references[viewKey]
         return reference?.keys?.mapNotNull { key ->
             val v = viewOf[key]
@@ -82,9 +84,9 @@ class View<T : Any>(val parentDirectory: Path,
                 removeValue(viewKey, key)
                 null
             } else {
-                v
+                KeyValue<T>(key, v)
             }
-        }?.toSet() ?: Collections.emptySet<T>()
+        }?.toSet() ?: Collections.emptySet()
     }
 
     private val addListeners = ConcurrentHashMap<String, MutableMap<Long, (String, T) -> Unit>>()

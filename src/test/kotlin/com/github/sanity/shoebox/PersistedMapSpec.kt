@@ -1,6 +1,5 @@
 package com.github.sanity.shoebox
 
-import io.kotlintest.matchers.be
 import io.kotlintest.specs.FreeSpec
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
@@ -54,26 +53,11 @@ internal class PersistedMapSpec : FreeSpec() {
                     pm["key1"] shouldEqual null
                 }
             }
-            "lastModifiedTime" - {
-                val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
-                pm["key2"] = object1
-                "should return null for a non-existent key" {
-                    pm.lastModifiedTimeMS("key1") shouldEqual null
-                }
-                "should have correct lastModifiedTime for data" {
-                    pm.lastModifiedTimeMS("key2")!! should be gt (System.currentTimeMillis() - 10000)
-                    pm.lastModifiedTimeMS("key2")!! should be lt (System.currentTimeMillis() + 10000)
-                }
-            }
             "should iterate through data" {
                 val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                 pm["key1"] = TestData(1, 2)
                 pm["key2"] = TestData(3, 4)
-                pm.all.map { KeyValue(it.key, it.value, 0) }.toSet() shouldEqual setOf(KeyValue("key1", TestData(1, 2), 0), KeyValue("key2", TestData(3, 4), 0))
-                forAll(pm.all.toList()) {
-                    it.lastModifiedMs should be gt (System.currentTimeMillis() - 10000)
-                    it.lastModifiedMs should be lt (System.currentTimeMillis() + 10000)
-                }
+                pm.entries.map { KeyValue(it.key, it.value) }.toSet() shouldEqual setOf(KeyValue("key1", TestData(1, 2)), KeyValue("key2", TestData(3, 4)))
 
             }
 

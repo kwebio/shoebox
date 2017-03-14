@@ -44,12 +44,12 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     private val gson = GsonBuilder().create()
 
     /**
-     * Return all key-value pairs in this Store as an Iterable
+     * Return entries key-value pairs in this Store as an Iterable
      */
-    val all: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(parentDirectory)
+    val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(parentDirectory)
             .mapNotNull {
                 val fileKey = it.fileName.toString()
-                KeyValue(fileKey, this[fileKey]!!, lastModifiedTimeMS(fileKey)!!)
+                KeyValue(fileKey, this[fileKey]!!)
             }
 
     operator fun get(key: String): T? {
@@ -102,15 +102,6 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         }
     }
 
-    fun lastModifiedTimeMS(key: String): Long? {
-        val filePath = parentDirectory.resolve(key)
-        if (Files.exists(filePath)) {
-            return Files.getLastModifiedTime(filePath).toMillis()
-        } else {
-            return null
-        }
-    }
-
     fun onNew(listener: (String, T, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         newListeners.put(handle, listener)
@@ -157,4 +148,4 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     }
 }
 
-data class KeyValue<out V>(val key: String, val value: V, val lastModifiedMs: Long)
+data class KeyValue<V>(val key: String, val value: V)
