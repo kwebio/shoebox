@@ -11,46 +11,46 @@ import kotlin.concurrent.thread
  */
 
 class View<T : Any>(val parentDirectory: Path,
-                    val viewOf: PersistedMap<T>,
+                    val viewOf: Store<T>,
                     val verifyBehavior: VerifyBehavior = VerifyBehavior.BLOCKING_VERIFY,
                     val viewBy: (T) -> String) {
 
-    internal val references = PersistedMap<Reference>(parentDirectory, Reference::class)
+    internal val references = Store<Reference>(parentDirectory, Reference::class)
 
     private val newListenerHandler: Long
     private val changeListenerHandler: Long
     private var removeListenerHandler: Long
 
     init {
-        newListenerHandler = viewOf.onNew { name, value, locallyInitiated ->
+        newListenerHandler = viewOf.onNew { key, value, locallyInitiated ->
             val viewKey = viewBy(value)
             if (locallyInitiated) {
-                addValue(viewKey, name)
+                addValue(viewKey, key)
             }
-            addListeners[viewKey]?.values?.forEach { it(name, value) }
+            addListeners[viewKey]?.values?.forEach { it(key, value) }
 
         }
-        changeListenerHandler = viewOf.onChange { name, previousValue, nextValue, locallyInitiated ->
+        changeListenerHandler = viewOf.onChange { key, previousValue, nextValue, locallyInitiated ->
             if (locallyInitiated) {
                 if (previousValue != nextValue) {
                     val previousViewKey = viewBy(previousValue)
                     val nextViewKey = viewBy(nextValue)
                     if (previousViewKey != nextViewKey) {
 
-                        removeListeners[previousViewKey]?.values?.forEach { it(name, previousValue) }
-                        removeValue(previousViewKey, name)
+                        removeListeners[previousViewKey]?.values?.forEach { it(key, previousValue) }
+                        removeValue(previousViewKey, key)
 
-                        addListeners[nextViewKey]?.values?.forEach { it(name, nextValue) }
-                        addValue(nextViewKey, name)
+                        addListeners[nextViewKey]?.values?.forEach { it(key, nextValue) }
+                        addValue(nextViewKey, key)
                     }
                 }
             }
         }
-        removeListenerHandler = viewOf.onRemove { name, value, locallyInitiated ->
+        removeListenerHandler = viewOf.onRemove { key, value, locallyInitiated ->
             if (locallyInitiated) {
                 val viewKey = viewBy(value)
-                removeListeners[viewKey]?.values?.forEach { it(name, value) }
-                removeValue(viewKey, name)
+                removeListeners[viewKey]?.values?.forEach { it(key, value) }
+                removeValue(viewKey, key)
             }
         }
 
@@ -61,25 +61,25 @@ class View<T : Any>(val parentDirectory: Path,
     }
 
     private fun verify() {
-        for ((name, value, _) in viewOf.all) {
-            val refName = viewBy(value)
-            addValue(refName, name)
+        for ((key, value, _) in viewOf.all) {
+            val refKey = viewBy(value)
+            addValue(refKey, key)
         }
 
         // NOTE: We don't check for superfluous references because these are found and corrected in get()
     }
 
-    operator fun get(viewName: String): Set<T> {
-        val reference = references[viewName]
-        return reference?.names?.mapNotNull { name ->
-            val v = viewOf[name]
+    operator fun get(viewKey: String): Set<T> {
+        val reference = references[viewKey]
+        return reference?.keys?.mapNotNull { key ->
+            val v = viewOf[key]
             if (v == null) {
-                removeListeners[viewName]?.values?.forEach { it(name, null) }
-                removeValue(viewName, name)
+                removeListeners[viewKey]?.values?.forEach { it(key, null) }
+                removeValue(viewKey, key)
                 null
-            } else if (viewBy(v) != viewName) {
-                removeListeners[viewName]?.values?.forEach { it(name, null) }
-                removeValue(viewName, name)
+            } else if (viewBy(v) != viewKey) {
+                removeListeners[viewKey]?.values?.forEach { it(key, null) }
+                removeValue(viewKey, key)
                 null
             } else {
                 v
@@ -90,24 +90,24 @@ class View<T : Any>(val parentDirectory: Path,
     private val addListeners = ConcurrentHashMap<String, MutableMap<Long, (String, T) -> Unit>>()
     private val removeListeners = ConcurrentHashMap<String, MutableMap<Long, (String, T?) -> Unit>>()
 
-    fun onAdd(viewName : String, listener : (String, T) -> Unit) : Long {
+    fun onAdd(viewKey : String, listener : (String, T) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
-        addListeners.computeIfAbsent(viewName, {ConcurrentHashMap()}).put(handle, listener)
+        addListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
         return handle
     }
 
-    fun removeAddListener(viewName : String, handle : Long) {
-        addListeners.get(viewName)?.remove(handle)
+    fun removeAddListener(viewKey : String, handle : Long) {
+        addListeners.get(viewKey)?.remove(handle)
     }
 
-    fun onRemove(viewName : String, listener : (String, T?) -> Unit) : Long {
+    fun onRemove(viewKey : String, listener : (String, T?) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
-        removeListeners.computeIfAbsent(viewName, {ConcurrentHashMap()}).put(handle, listener)
+        removeListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
         return handle
     }
 
-    fun removeRemoveListener(viewName : String, handle : Long) {
-        removeListeners.get(viewName)?.remove(handle)
+    fun removeRemoveListener(viewKey : String, handle : Long) {
+        removeListeners.get(viewKey)?.remove(handle)
     }
 
     protected fun finalize() {
@@ -117,29 +117,29 @@ class View<T : Any>(val parentDirectory: Path,
     }
 
     sealed class EventType<T> {
-        data class Add<T>(val name : String, val obj : T) : EventType<T>()
-        data class Remove<T>(val name : String, val obj : T?) : EventType<T>()
+        data class Add<T>(val key : String, val obj : T) : EventType<T>()
+        data class Remove<T>(val key : String, val obj : T?) : EventType<T>()
     }
 
-    internal fun addValue(name: String, value: String) {
-        val oldRef = references[name] ?: Reference()
-        references[name] = oldRef.addName(value)
+    internal fun addValue(key: String, value: String) {
+        val oldRef = references[key] ?: Reference()
+        references[key] = oldRef.addKey(value)
     }
 
-    internal fun removeValue(name: String, value: String) {
-        val oldRef = references[name]
+    internal fun removeValue(key: String, value: String) {
+        val oldRef = references[key]
         if (oldRef != null) {
-            references[name] = oldRef.removeName(value)
+            references[key] = oldRef.removeKey(value)
         }
     }
 }
 
-data class Reference(val names: Set<String>) {
+data class Reference(val keys: Set<String>) {
     constructor() : this(Collections.emptySet())
 
-    fun removeName(name: String) = Reference(names.minus(name))
+    fun removeKey(key: String) = Reference(keys.minus(key))
 
-    fun addName(name: String) = Reference(names.plus(name))
+    fun addKey(key: String) = Reference(keys.plus(key))
 }
 
 enum class VerifyBehavior {

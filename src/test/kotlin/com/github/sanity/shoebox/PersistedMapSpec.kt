@@ -17,7 +17,7 @@ internal class PersistedMapSpec : FreeSpec() {
             val object1 = TestData(1, 2)
             val object2 = TestData(3, 4)
             "when an item is stored" - {
-                val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                 pm["key1"] = object1
                 "should cache the item that was stored" {
                     pm.cache.get("key1") shouldEqual object1
@@ -34,7 +34,7 @@ internal class PersistedMapSpec : FreeSpec() {
                 }
             }
             "when an item is replaced" - {
-                val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                 pm["key1"] = object1
                 pm["key1"] = object2
 
@@ -47,7 +47,7 @@ internal class PersistedMapSpec : FreeSpec() {
                 }
             }
             "when an item is removed" - {
-                val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                 pm["key1"] = object1
                 pm.remove("key1")
                 "should return null for the removed key" {
@@ -55,7 +55,7 @@ internal class PersistedMapSpec : FreeSpec() {
                 }
             }
             "lastModifiedTime" - {
-                val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                 pm["key2"] = object1
                 "should return null for a non-existent key" {
                     pm.lastModifiedTimeMS("key1") shouldEqual null
@@ -66,7 +66,7 @@ internal class PersistedMapSpec : FreeSpec() {
                 }
             }
             "should iterate through data" {
-                val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                 pm["key1"] = TestData(1, 2)
                 pm["key2"] = TestData(3, 4)
                 pm.all.map { KeyValue(it.key, it.value, 0) }.toSet() shouldEqual setOf(KeyValue("key1", TestData(1, 2), 0), KeyValue("key2", TestData(3, 4), 0))
@@ -82,7 +82,7 @@ internal class PersistedMapSpec : FreeSpec() {
                 val object2 = TestData(3, 4)
                 val object3 = TestData(5, 4)
                 "a new object is created" - {
-                    val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                    val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                     var callCount = AtomicInteger(0)
                     val handle: Long = pm.onNew { key, obj, locallyInitiated ->
                         callCount.incrementAndGet() shouldEqual 1
@@ -102,7 +102,7 @@ internal class PersistedMapSpec : FreeSpec() {
 
                 }
                 "an object is changed" - {
-                    val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                    val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                     pm["key1"] = object1
                     var globalCallCount = 0
                     var keySpecificCallCount = 0
@@ -145,7 +145,7 @@ internal class PersistedMapSpec : FreeSpec() {
 
                 }
                 "should trigger object removal callback" - {
-                    val pm = PersistedMap<TestData>(Files.createTempDirectory("ss-"), TestData::class)
+                    val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                     pm["key1"] = object3
                     var callCount = 0
                     val onRemoveHandle = pm.onRemove { name, obj, locallyInitiated ->

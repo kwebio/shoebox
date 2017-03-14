@@ -22,9 +22,7 @@ import kotlin.reflect.KClass
  * TODO:    (then remove the previous lockfile mechanism)
  */
 
-
-
-class PersistedMap<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
+class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
 
     init {
         Files.createDirectories(parentDirectory)
@@ -32,77 +30,80 @@ class PersistedMap<T : Any>(val parentDirectory: Path, private val kc: KClass<T>
 
     internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(
             object : CacheLoader<String, T?>() {
-                override fun load(name: String): T? {
-                    return this@PersistedMap.load(name)
+                override fun load(key: String): T? {
+                    return this@Store.load(key)
                 }
             }
     )
 
-    private val nameSpecificChangeListeners = ConcurrentHashMap<String, ConcurrentHashMap<Long, (T, T, Boolean) -> Unit>>()
+    private val keySpecificChangeListeners = ConcurrentHashMap<String, ConcurrentHashMap<Long, (T, T, Boolean) -> Unit>>()
     private val newListeners = ConcurrentHashMap<Long, (String, T, Boolean) -> Unit>()
     private val removeListeners = ConcurrentHashMap<Long, (String, T, Boolean) -> Unit>()
     private val changeListeners = ConcurrentHashMap<Long, (String, T, T, Boolean) -> Unit>()
     
     private val gson = GsonBuilder().create()
 
+    /**
+     * Return all key-value pairs in this Store as an Iterable
+     */
     val all: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(parentDirectory)
             .mapNotNull {
-                val fileName = it.fileName.toString()
-                KeyValue(fileName, this[fileName]!!, lastModifiedTimeMS(fileName)!!)
+                val fileKey = it.fileName.toString()
+                KeyValue(fileKey, this[fileKey]!!, lastModifiedTimeMS(fileKey)!!)
             }
 
-    operator fun get(name: String): T? {
-        return cache.getIfPresent(name) ?: load(name)
+    operator fun get(key: String): T? {
+        return cache.getIfPresent(key) ?: load(key)
     }
 
-    fun remove(name: String) {
-        val cachedValue: T? = cache.getIfPresent(name)
-        val filePath = parentDirectory.resolve(name)
+    fun remove(key: String) {
+        val cachedValue: T? = cache.getIfPresent(key)
+        val filePath = parentDirectory.resolve(key)
         if (Files.exists(filePath)) {
-            val oldValue = cachedValue ?: load(name)
+            val oldValue = cachedValue ?: load(key)
             if (oldValue != null) {
                 Files.delete(filePath)
-                removeListeners.values.forEach { t -> t(name, oldValue, true) }
+                removeListeners.values.forEach { t -> t(key, oldValue, true) }
             }
         }
         if (cachedValue != null) {
-            cache.invalidate(name)
+            cache.invalidate(key)
         }
     }
 
-    private fun load(name: String): T? {
-        val filePath = parentDirectory.resolve(name)
+    private fun load(key: String): T? {
+        val filePath = parentDirectory.resolve(key)
         if (Files.exists(filePath)) {
             val o = filePath.newBufferedReader().use {
                gson.fromJson(it, kc.javaObjectType)
             }
-            cache.put(name, o)
+            cache.put(key, o)
             return o
         } else {
             return null
         }
     }
 
-    operator fun set(name: String, value: T) {
-        val previousValue = get(name)
+    operator fun set(key: String, value: T) {
+        val previousValue = get(key)
         if (previousValue == null) {
-            newListeners.values.forEach { l -> l(name, value, true) }
+            newListeners.values.forEach { l -> l(key, value, true) }
         } else if (value != previousValue) {
-            changeListeners.values.forEach { cl -> cl(name, previousValue, value, true) }
-            nameSpecificChangeListeners[name]?.values?.forEach { l -> l(previousValue, value, true) }
+            changeListeners.values.forEach { cl -> cl(key, previousValue, value, true) }
+            keySpecificChangeListeners[key]?.values?.forEach { l -> l(previousValue, value, true) }
         }
-        cache.put(name, value)
+        cache.put(key, value)
         if (value != previousValue) {
             if (!parentDirectory.exists()) throw RuntimeException("Parent directory doesn't exist")
-            val filePath = parentDirectory.resolve(name)
+            val filePath = parentDirectory.resolve(key)
             filePath.newBufferedWriter().use {
                 gson.toJson(value, kc.javaObjectType, it)
             }
         }
     }
 
-    fun lastModifiedTimeMS(name: String): Long? {
-        val filePath = parentDirectory.resolve(name)
+    fun lastModifiedTimeMS(key: String): Long? {
+        val filePath = parentDirectory.resolve(key)
         if (Files.exists(filePath)) {
             return Files.getLastModifiedTime(filePath).toMillis()
         } else {
@@ -136,9 +137,9 @@ class PersistedMap<T : Any>(val parentDirectory: Path, private val kc: KClass<T>
         return handle
     }
     
-    fun onChange(name: String, listener: (T, T, Boolean) -> Unit) : Long {
+    fun onChange(key: String, listener: (T, T, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
-        nameSpecificChangeListeners.computeIfAbsent(name, { ConcurrentHashMap() }).put(handle, listener)
+        keySpecificChangeListeners.computeIfAbsent(key, { ConcurrentHashMap() }).put(handle, listener)
         return handle
     }
 
@@ -146,11 +147,11 @@ class PersistedMap<T : Any>(val parentDirectory: Path, private val kc: KClass<T>
         changeListeners.remove(handle)
     }
 
-    fun removeChangeListener(name: String, handle : Long) {
-        nameSpecificChangeListeners[name]?.let {
+    fun removeChangeListener(key: String, handle : Long) {
+        keySpecificChangeListeners[key]?.let {
             it.remove(handle)
             if (it.isEmpty()) {
-                nameSpecificChangeListeners.remove(name)
+                keySpecificChangeListeners.remove(key)
             }
         }
     }
