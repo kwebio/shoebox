@@ -17,12 +17,13 @@ dependency on Kweb.
 * Data is stored as JSON in ordinary directories
 
 ### Limitations
-* Doesn't implement the MutableMap interface
-  * This is because some MutableMap operations would require loading the entire Map into RAM
 * Not very space efficient for small objects as files take up at least 4K on many filesystems
+  * Json files can easily be compressed, although this isn't currently supported
 * Directories can't be shared between different Shoebox instances yet, although this is planned
   * Once supported we should be able to use [shared filesystems](https://aws.amazon.com/blogs/aws/amazon-elastic-file-system-shared-file-storage-for-amazon-ec2/)
     to scale horizontally, limited only by the filesystem's scalability
+* Doesn't implement the MutableMap interface
+  * This is because some MutableMap functions require loading the entire Map into RAM
 
 ### Usage Example
 ```kotlin
