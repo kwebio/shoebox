@@ -15,13 +15,13 @@ fun main(args : Array<String>) {
     val usersByGender = View(dir.resolve("usersByGender"), userStore, viewBy = User::gender)
 
     userStore["ian"] = User("Ian Clarke", "male", "ian@blah.com")
-    val fredUser = User("Fred Smith", "male", "fred@blah.com")
-    userStore["fred"] = fredUser
+    userStore["fred"] = User("Fred Smith", "male", "fred@blah.com")
     userStore["sue"] = User("Sue Smith", "female", "fred@blah.com")
 
-    println(usersByEmail["ian@blah.com"])   // Will print setOf(User("Ian Clarke", "ian@blah.com"))
-    println(usersByGender["male"])          // Will print setOf(User("Ian Clarke", "ian@blah.com"),
-                                            //                  User("Fred Smith", "male", "fred@blah.com"))
+    println(usersByEmail["ian@blah.com"])   // [User(name=Ian Clarke, gender=male, email=ian@blah.com)]
+    println(usersByGender["male"])          // [User(name=Ian Clarke, gender=male, email=ian@blah.com),
+    // User(name=Fred Smith, gender=male, email=fred@blah.com)]
+    // note: view["xx]" returns a set of values
 
     usersByGender.onAdd("male", {kv ->
         println("${kv.key} became male")
@@ -30,7 +30,7 @@ fun main(args : Array<String>) {
         println("${kv.key} ceased to be male")
     })
 
-    userStore["fred"] = fredUser.copy(gender = "female") // Will print "fred ceased to be male"
+    userStore["fred"] = userStore["fred"]!!.copy(gender = "female") // Prints "fred ceased to be male"
 }
 
 data class User(val name : String, val gender : String, val email : String)
