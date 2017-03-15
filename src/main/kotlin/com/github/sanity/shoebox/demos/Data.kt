@@ -2,7 +2,7 @@ package com.github.sanity.shoebox.demos
 
 import com.github.sanity.shoebox.Store
 import com.github.sanity.shoebox.View
-import propheto.mkdirIfAbsent
+import com.github.sanity.shoebox.mkdirIfAbsent
 import java.nio.file.Path
 
 /**

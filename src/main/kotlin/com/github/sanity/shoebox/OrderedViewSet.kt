@@ -1,8 +1,5 @@
 package com.github.sanity.shoebox
 
-import propheto.BinarySearchResult
-import propheto.betterBinarySearch
-import propheto.listenerHandleSource
 import java.util.concurrent.ConcurrentHashMap
 
 /**

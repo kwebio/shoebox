@@ -22,4 +22,6 @@ the lack of simple peristence mechanisms that support observation.
 ### Usage Example
 
 ### Documentation
-* 
+* API
+  * [0.1.2](https://jitpack.io/com/github/sanity/shoebox/0.1.2/javadoc/)
+  * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)

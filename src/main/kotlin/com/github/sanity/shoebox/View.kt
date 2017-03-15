@@ -1,6 +1,5 @@
 package com.github.sanity.shoebox
 
-import propheto.listenerHandleSource
 import java.nio.file.Path
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
