@@ -20,8 +20,26 @@ the lack of simple peristence mechanisms that support observation.
 * Uses the filesystem for persistent storage, although alternate back-ends can be supported in future
 
 ### Usage Example
+```kotlin
+data class User(val name : String, val email : String)
+data class Page(val name : String, val title : String)
+data class UserPage(val user : String, val page : String)
+
+val userStore = Store(dir.resolve("users"), User::class)
+val pageStore = Store(dir.resolve("pages"), Page::class)
+val userPageStore = Store(dir.resolve("userPages"), UserPage::class)
+
+val usersByEmail = View(data.dir.resolve("usersByEmail"), data.userStore, viewBy = User::email)
+
+fun main(args : Array<String>) { 
+    userStore["ian"] = User("Ian Clarke", "ian@blah.com")
+    userStore["fred"] = User("Fred Smith", "fred@blah.com")
+    println(usersByEmail["ian@blah.com"]) // Will print setOf(User("Ian Clarke", "ian@blah.com"))
+    
+}
+```
 
 ### Documentation
 * API
-  * [0.1.2](https://jitpack.io/com/github/sanity/shoebox/0.1.2/javadoc/)
+  * [0.1.3](https://jitpack.io/com/github/sanity/shoebox/0.1.3/javadoc/)
   * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)
