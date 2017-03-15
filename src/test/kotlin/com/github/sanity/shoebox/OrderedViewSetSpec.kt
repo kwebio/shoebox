@@ -2,6 +2,9 @@ package com.github.sanity.shoebox
 
 import com.github.sanity.shoebox.data.Gender
 import com.github.sanity.shoebox.data.User
+import com.github.sanity.shoebox.filebased.Store
+import com.github.sanity.shoebox.filebased.View
+import com.github.sanity.shoebox.KeyValue
 import io.kotlintest.specs.FreeSpec
 import java.nio.file.Files
 

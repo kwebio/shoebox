@@ -1,10 +1,5 @@
-package com.github.sanity.shoebox.generic
+package com.github.sanity.shoebox
 
-import com.github.sanity.shoebox.generic.KeyValue
-import com.github.sanity.shoebox.listenerHandleSource
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import java.util.concurrent.ConcurrentHashMap
 
 /**

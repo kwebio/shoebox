@@ -1,5 +1,6 @@
 package com.github.sanity.shoebox
 
+import com.github.sanity.shoebox.filebased.View
 import java.util.concurrent.ConcurrentHashMap
 
 /**

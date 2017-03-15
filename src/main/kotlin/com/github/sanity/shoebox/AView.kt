@@ -1,6 +1,5 @@
-package com.github.sanity.shoebox.generic
+package com.github.sanity.shoebox
 
-import com.github.sanity.shoebox.listenerHandleSource
 import java.util.concurrent.ConcurrentHashMap
 
 /**

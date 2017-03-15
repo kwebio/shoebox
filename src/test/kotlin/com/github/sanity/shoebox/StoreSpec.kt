@@ -1,5 +1,7 @@
 package com.github.sanity.shoebox
 
+import com.github.sanity.shoebox.filebased.Store
+import com.github.sanity.shoebox.KeyValue
 import io.kotlintest.specs.FreeSpec
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger

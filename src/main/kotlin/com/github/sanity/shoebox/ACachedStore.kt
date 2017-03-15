@@ -1,4 +1,4 @@
-package com.github.sanity.shoebox.generic
+package com.github.sanity.shoebox
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader

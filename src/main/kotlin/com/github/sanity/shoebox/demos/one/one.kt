@@ -1,7 +1,7 @@
 package com.github.sanity.shoebox.demos.one
 
-import com.github.sanity.shoebox.Store
-import com.github.sanity.shoebox.View
+import com.github.sanity.shoebox.filebased.Store
+import com.github.sanity.shoebox.filebased.View
 import java.nio.file.Files
 
 /**
