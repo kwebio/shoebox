@@ -19,7 +19,7 @@ It's important to note, however, that ShoeBox is independent of Kweb, and can be
 ### Features
 * Functionality similar to MutableMap
 * Add listeners for object addition, deletion, and modification
-* Fairly comprehensive unit tests
+* Fairly comprehensive [unit tests](https://github.com/sanity/shoebox/tree/master/src/test/kotlin/com/github/sanity/shoebox)
 * Lightweight, pulls in very few dependencies
 * Materialized views
   * Efficiently retrieve objects by any specified key derived from the object
