@@ -27,7 +27,7 @@ dependency on Kweb.
 
 ### Adding to your project
 Shoebox can be added easily to your Maven or Gradle project through Jitpack: 
-[![Release](https://jitpack.io/v/User/Repo.svg)](https://jitpack.io/#User/Repo)
+[![Release](https://jitpack.io/v/User/Repo.svg)](https://jitpack.io/#sanity/shoebox)
 
 ### Usage Example
 ```kotlin
