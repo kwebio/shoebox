@@ -7,11 +7,11 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Created by ian on 3/12/17.
  */
-class PersistedMapSpec : FreeSpec() {
+class StoreSpec : FreeSpec() {
 
 
     init {
-        "A persistent map" - {
+        "A Shoebox store" - {
             val object1 = TestData(1, 2)
             val object2 = TestData(3, 4)
             "when an item is stored" - {
