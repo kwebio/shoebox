@@ -97,7 +97,7 @@ class View<T : Any>(val parentDirectory: Path,
         return handle
     }
 
-    fun removeAddListener(viewKey : String, handle : Long) {
+    fun deleteAddListener(viewKey : String, handle : Long) {
         addListeners.get(viewKey)?.remove(handle)
     }
 
@@ -109,14 +109,14 @@ class View<T : Any>(val parentDirectory: Path,
         return handle
     }
 
-    fun removeRemoveListener(viewKey : String, handle : Long) {
+    fun deleteRemoveListener(viewKey : String, handle : Long) {
         removeListeners.get(viewKey)?.remove(handle)
     }
 
     protected fun finalize() {
-        viewOf.removeNewListener(newListenerHandler)
-        viewOf.removeChangeListener(changeListenerHandler)
-        viewOf.removeRemoveListener(removeListenerHandler)
+        viewOf.deleteNewListener(newListenerHandler)
+        viewOf.deleteChangeListener(changeListenerHandler)
+        viewOf.deleteRemoveListener(removeListenerHandler)
     }
 
     sealed class EventType<T> {

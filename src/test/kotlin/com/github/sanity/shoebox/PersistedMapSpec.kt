@@ -74,7 +74,7 @@ class PersistedMapSpec : FreeSpec() {
                     }
                     pm["key1"] = object1
                     "should trigger callback" { callCount.get() shouldEqual 1 }
-                    pm.removeNewListener(handle)
+                    pm.deleteNewListener(handle)
                     "should not trigger callback after it has been removed" {
                         callCount.get() shouldEqual 1
                         pm["key3"] = object3
@@ -115,8 +115,8 @@ class PersistedMapSpec : FreeSpec() {
                         keySpecificCallCount shouldEqual 1
                     }
 
-                    pm.removeChangeListener(globalChangeHandle)
-                    pm.removeChangeListener("key1", keySpecificChangeHandle)
+                    pm.deleteChangeListener(globalChangeHandle)
+                    pm.deleteChangeListener("key1", keySpecificChangeHandle)
                     pm["key1"] = object3
                     "callbacks shouldn't be called after they've been removed" {
                         globalCallCount shouldEqual 1
@@ -139,7 +139,7 @@ class PersistedMapSpec : FreeSpec() {
                     "callback should be called once" {
                         callCount shouldEqual 1
                     }
-                    pm.removeRemoveListener(onRemoveHandle)
+                    pm.deleteRemoveListener(onRemoveHandle)
                     pm["key3"] = object3
                     pm.remove("key3")
                     "callback shouldn't be called again after it has been removed" {

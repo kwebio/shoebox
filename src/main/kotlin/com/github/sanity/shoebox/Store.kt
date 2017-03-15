@@ -108,7 +108,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         return handle
     }
 
-    fun removeNewListener(handle : Long) {
+    fun deleteNewListener(handle : Long) {
         newListeners.remove(handle)
     }
 
@@ -118,7 +118,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         return handle
     }
 
-    fun removeRemoveListener(handle : Long) {
+    fun deleteRemoveListener(handle : Long) {
         removeListeners.remove(handle)
     }
     
@@ -134,11 +134,11 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         return handle
     }
 
-    fun removeChangeListener(handle : Long) {
+    fun deleteChangeListener(handle : Long) {
         changeListeners.remove(handle)
     }
 
-    fun removeChangeListener(key: String, handle : Long) {
+    fun deleteChangeListener(key: String, handle : Long) {
         keySpecificChangeListeners[key]?.let {
             it.remove(handle)
             if (it.isEmpty()) {

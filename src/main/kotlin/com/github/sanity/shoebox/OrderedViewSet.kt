@@ -98,7 +98,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
     }
 
     protected fun finalize() {
-        view.removeAddListener(viewKey, additionHandle)
-        view.removeRemoveListener(viewKey, removalHandle)
+        view.deleteAddListener(viewKey, additionHandle)
+        view.deleteRemoveListener(viewKey, removalHandle)
     }
 }
