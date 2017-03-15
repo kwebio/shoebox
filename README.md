@@ -14,11 +14,15 @@ dependency on Kweb.
 * Fairly comprehensive unit tests
 * Add views, which can index objects by any computed value, and which will stay in sync automatically
 * Views also support change modifications
+* Data is stored as JSON in ordinary directories
 
 ### Limitations
 * Doesn't implement the MutableMap interface
   * This is because some MutableMap operations would require loading the entire Map into RAM
-* Uses the filesystem for persistent storage, although alternate back-ends can be supported in future
+* Not very space efficient for small objects as files take up at least 4K on many filesystems
+* Directories can't be shared between different Shoebox instances yet, although this is planned
+  * Once supported we should be able to use [shared filesystems](https://aws.amazon.com/blogs/aws/amazon-elastic-file-system-shared-file-storage-for-amazon-ec2/)
+    to scale horizontally, limited only by the filesystem's scalability
 
 ### Usage Example
 ```kotlin
