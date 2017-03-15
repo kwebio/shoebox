@@ -7,29 +7,36 @@ ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence tha
 stored data is changed.
 
 ShoeBox was created as a persistence layer for [Kweb](http://kweb.io/) applications, motivated by
-the lack of a simple persistence mechanism that supports the observer pattern.  However, ShoeBox does not depend on 
-Kweb.
-
-The idea is to create a "bridge" library between Shoebox and Kweb that will allow "binding" of UI components to
-persistent state, also known as the [data mapper pattern](https://en.m.wikipedia.org/wiki/Data_mapper_pattern), 
+the lack of a simple persistence mechanism that supports the observer pattern.  The idea is to create a "bridge" 
+library between Shoebox and Kweb that will allow "binding" of UI components to persistent state, also known as 
+the [data mapper pattern](https://en.m.wikipedia.org/wiki/Data_mapper_pattern), 
 [here is a video](https://www.youtube.com/watch?v=0Q-BUldFZjA) illustrating this idea for TornadoFX on Android.
+
+It's important to note, however, that ShoeBox is independent of Kweb, and can be used for many other things.
+
+
 
 ### Features
 * Functionality similar to MutableMap
 * Add listeners for object addition, deletion, and modification
 * Fairly comprehensive unit tests
-* Add views, which can index objects by any computed value, and which will stay in sync automatically
-* Views also support change modifications
-* Data is stored as JSON in ordinary directories
+* Lightweight, pulls in very few dependencies
+* Materialized views
+  * Efficiently retrieve objects by any specified key derived from the object
+  * Similar to database indexes, but also supporting the observer pattern
+* Currently data is stored as uncompressed files, serialized to JSON
 
 ### Limitations
 * Not very space efficient for small objects as files take up at least 4K on many filesystems
-  * Json files can easily be compressed, although this isn't currently supported
-* Directories can't be shared between different Shoebox instances yet, although this is planned
-  * Once supported we should be able to use [shared filesystems](https://aws.amazon.com/blogs/aws/amazon-elastic-file-system-shared-file-storage-for-amazon-ec2/)
-    to scale horizontally, limited only by the filesystem's scalability
-* Doesn't implement the MutableMap interface
-  * This is because some MutableMap functions require loading the entire Map into RAM
+* Data isn't currently compressed
+* Directories can't be shared between different Shoebox instances, although this is planned
+  * Once this is supported we can use [shared filesystems](https://aws.amazon.com/blogs/aws/amazon-elastic-file-system-shared-file-storage-for-amazon-ec2/)
+    to scale horizontally, limited only by the filesystem
+* Doesn't implement the [MutableMap](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-map/) interface
+  * Even though the semantics are very similar to MutableMap, it isn't currently implemented because we wanted to avoid
+    loading all data into memory.  
+  * This is probably solvable through custom implementations of MutableSet, MutableEntry and other interfaces, and
+    will probably be done before 1.0 is released.
 
 ### Adding to your project
 Shoebox can be added easily to your Maven or Gradle project through Jitpack:
