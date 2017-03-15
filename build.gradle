@@ -78,3 +78,5 @@ pitest {
 artifacts {
     archives javadocJar
 }
+
+sourceSets.main.kotlin.srcDirs += 'src/main/kotlin'

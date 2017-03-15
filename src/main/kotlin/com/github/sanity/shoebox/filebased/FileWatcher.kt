@@ -1,4 +1,4 @@
-package com.github.sanity.shoebox
+package com.github.sanity.shoebox.filebased
 
 import java.nio.file.FileSystems
 import java.nio.file.Path

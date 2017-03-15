@@ -3,6 +3,9 @@ package com.github.sanity.shoebox
 import com.github.sanity.shoebox.data.Gender.FEMALE
 import com.github.sanity.shoebox.data.Gender.MALE
 import com.github.sanity.shoebox.data.User
+import com.github.sanity.shoebox.filebased.Store
+import com.github.sanity.shoebox.filebased.View
+import com.github.sanity.shoebox.KeyValue
 import io.kotlintest.specs.FreeSpec
 import java.lang.AssertionError
 import java.nio.file.Files

@@ -1,18 +1,22 @@
-package com.github.sanity.shoebox
+package com.github.sanity.shoebox.filebased
 
+import com.github.sanity.shoebox.AView
+import com.github.sanity.shoebox.KeyValue
 import java.nio.file.Path
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
 
 /**
  * Created by ian on 3/11/17.
  */
 
-class View<T : Any>(val parentDirectory: Path,
-                    val viewOf: Store<T>,
-                    val verifyBehavior: VerifyBehavior = VerifyBehavior.BLOCKING_VERIFY,
-                    val viewBy: (T) -> String) {
+class View<T : Any>(
+    parentDirectory: Path,
+    viewOf: Store<T>,
+    verifyBehavior: VerifyBehavior = VerifyBehavior.BLOCKING_VERIFY,
+    viewBy: (T) -> String
+) : AView<T>( viewOf, viewBy )
+{
 
     internal val references = Store<Reference>(parentDirectory, Reference::class)
 
@@ -26,7 +30,7 @@ class View<T : Any>(val parentDirectory: Path,
             if (locallyInitiated) {
                 addValue(viewKey, keyValue.key)
             }
-            addListeners[viewKey]?.values?.forEach { it(keyValue) }
+            onAdd(viewKey,keyValue)
 
         }
         changeListenerHandler = viewOf.onChange { previousValue, nextKeyValue, locallyInitiated ->
@@ -36,10 +40,10 @@ class View<T : Any>(val parentDirectory: Path,
                     val nextViewKey = viewBy(nextKeyValue.value)
                     if (previousViewKey != nextViewKey) {
 
-                        removeListeners[previousViewKey]?.values?.forEach { it(KeyValue(nextKeyValue.key, previousValue)) }
+                        onRemove(previousViewKey, KeyValue(nextKeyValue.key, previousValue as T?))
                         removeValue(previousViewKey, nextKeyValue.key)
 
-                        addListeners[nextViewKey]?.values?.forEach { it(nextKeyValue) }
+                        onAdd(nextViewKey,nextKeyValue)
                         addValue(nextViewKey, nextKeyValue.key)
                     }
                 }
@@ -48,7 +52,7 @@ class View<T : Any>(val parentDirectory: Path,
         removeListenerHandler = viewOf.onRemove { keyValue, locallyInitiated ->
             if (locallyInitiated) {
                 val viewKey = viewBy(keyValue.value)
-                removeListeners[viewKey]?.values?.forEach { it(keyValue as KeyValue<T?>) }
+                onRemove(viewKey,keyValue as KeyValue<T?>)
                 removeValue(viewKey, keyValue.key)
             }
         }
@@ -68,48 +72,24 @@ class View<T : Any>(val parentDirectory: Path,
         // NOTE: We don't check for superfluous references because these are found and corrected in get()
     }
 
-    operator fun get(viewKey: String): Set<T> = getKeyValues(viewKey).map(KeyValue<T>::value).toSet()
+    override fun get(viewKey: String): Set<T> = getKeyValues(viewKey).map(KeyValue<T>::value).toSet()
 
     fun getKeyValues(viewKey: String): Set<KeyValue<T>> {
         val reference = references[viewKey]
         return reference?.keys?.mapNotNull { key ->
             val v = viewOf[key]
             if (v == null) {
-                removeListeners[viewKey]?.values?.forEach { it(KeyValue(key, null)) }
+                onRemove(viewKey, KeyValue(key,null as T?))
                 removeValue(viewKey, key)
                 null
             } else if (viewBy(v) != viewKey) {
-                removeListeners[viewKey]?.values?.forEach { it(KeyValue(key, null)) }
+                onRemove(viewKey, KeyValue(key,null as T?))
                 removeValue(viewKey, key)
                 null
             } else {
                 KeyValue<T>(key, v)
             }
         }?.toSet() ?: Collections.emptySet()
-    }
-
-    private val addListeners = ConcurrentHashMap<String, MutableMap<Long, (KeyValue<T>) -> Unit>>()
-
-    fun onAdd(viewKey : String, listener : (KeyValue<T>) -> Unit) : Long {
-        val handle = listenerHandleSource.incrementAndGet()
-        addListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
-        return handle
-    }
-
-    fun deleteAddListener(viewKey : String, handle : Long) {
-        addListeners.get(viewKey)?.remove(handle)
-    }
-
-    private val removeListeners = ConcurrentHashMap<String, MutableMap<Long, (KeyValue<T?>) -> Unit>>()
-
-    fun onRemove(viewKey : String, listener : (KeyValue<T?>) -> Unit) : Long {
-        val handle = listenerHandleSource.incrementAndGet()
-        removeListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
-        return handle
-    }
-
-    fun deleteRemoveListener(viewKey : String, handle : Long) {
-        removeListeners.get(viewKey)?.remove(handle)
     }
 
     protected fun finalize() {
