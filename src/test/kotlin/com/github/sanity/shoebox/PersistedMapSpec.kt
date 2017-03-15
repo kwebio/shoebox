@@ -8,7 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * Created by ian on 3/12/17.
  */
 internal class PersistedMapSpec : FreeSpec() {
-    data class TestData(val one: Int, val two: Int)
 
 
     init {
@@ -154,6 +153,7 @@ internal class PersistedMapSpec : FreeSpec() {
         }
     }
 
+    internal data class TestData(val one: Int, val two: Int)
 
     override fun afterAll() {
     }

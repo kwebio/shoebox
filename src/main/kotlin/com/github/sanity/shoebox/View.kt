@@ -134,17 +134,20 @@ class View<T : Any>(val parentDirectory: Path,
             references[key] = oldRef.removeKey(value)
         }
     }
+
+    enum class VerifyBehavior {
+        BLOCKING_VERIFY, ASYNC_VERIFY
+    }
+
+    data class Reference(val keys: Set<String>) {
+        constructor() : this(Collections.emptySet())
+
+        fun removeKey(key: String) = Reference(keys.minus(key))
+
+        fun addKey(key: String) = Reference(keys.plus(key))
+    }
 }
 
-data class Reference(val keys: Set<String>) {
-    constructor() : this(Collections.emptySet())
 
-    fun removeKey(key: String) = Reference(keys.minus(key))
 
-    fun addKey(key: String) = Reference(keys.plus(key))
-}
-
-enum class VerifyBehavior {
-    BLOCKING_VERIFY, ASYNC_VERIFY
-}
 

@@ -1,7 +1,8 @@
 package com.github.sanity.shoebox
 
-import com.github.sanity.shoebox.Gender.FEMALE
-import com.github.sanity.shoebox.Gender.MALE
+import com.github.sanity.shoebox.data.Gender.FEMALE
+import com.github.sanity.shoebox.data.Gender.MALE
+import com.github.sanity.shoebox.data.User
 import io.kotlintest.specs.FreeSpec
 import java.lang.AssertionError
 import java.nio.file.Files
@@ -126,9 +127,3 @@ class ViewSpec : FreeSpec() {
 }
 
 
-
-data class User(val name : String, val gender : Gender)
-
-enum class Gender {
-    MALE, FEMALE
-}

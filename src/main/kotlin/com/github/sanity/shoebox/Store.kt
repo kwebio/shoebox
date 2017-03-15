@@ -148,4 +148,3 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     }
 }
 
-data class KeyValue<V>(val key: String, val value: V)

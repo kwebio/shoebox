@@ -9,7 +9,9 @@ import java.util.concurrent.ConcurrentHashMap
  * Created by ian on 3/14/17.
  */
 class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
+
     private val orderedList : MutableList<KeyValue<T>>
+    private val modificationHandlers = ArrayList<Long>()
     private val additionHandle: Long
     private val removalHandle: Long
 
@@ -20,21 +22,23 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         ol.sortWith(kvComparator)
         orderedList = ol
         additionHandle = view.onAdd(viewKey) { key, value ->
-            val binarySearchResult = orderedList.betterBinarySearch(KeyValue(key, value), kvComparator)
+            val keyValue = KeyValue(key, value)
+            val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
             val insertionPoint: Int = when (binarySearchResult) {
                 is BinarySearchResult.Exact -> throw RuntimeException("Listener called for value already in list ($value)")
-                is BinarySearchResult.Between -> binarySearchResult.lowIndex
+                is BinarySearchResult.Between -> binarySearchResult.highIndex
             }
-            ol.add(insertionPoint, KeyValue(key, value))
-            insertListeners.values.forEach { it(insertionPoint, value) }
+            ol.add(insertionPoint, keyValue)
+            insertListeners.values.forEach { it(insertionPoint, keyValue) }
         }
 
         removalHandle = view.onRemove(viewKey) { key, value ->
             if (value != null) {
-                val binarySearchResult = orderedList.betterBinarySearch(KeyValue(key, value), kvComparator)
+                val keyValue = KeyValue(key, value)
+                val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
                 when (binarySearchResult) {
                     is BinarySearchResult.Exact -> {
-                        removeListeners.values.forEach { it(binarySearchResult.index, value) }
+                        removeListeners.values.forEach { it(binarySearchResult.index, keyValue) }
                         orderedList.removeAt(binarySearchResult.index)
                     }
                     is BinarySearchResult.Between -> throw RuntimeException("remove listener called for unknown value")
@@ -44,12 +48,38 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
                 // there isn't much we can do, so just ignore it
             }
         }
+
+        ol.forEach { kv ->
+            modificationHandlers.add(view.viewOf.onChange(kv.key) {oldValue, newValue, _ ->
+                if (comparator.compare(oldValue, newValue) != 0) {
+                    val newKeyValue = KeyValue(kv.key, newValue)
+                    val insertPoint = orderedList.betterBinarySearch(newKeyValue, kvComparator)
+                    val insertionIndex: Int = when (insertPoint) {
+                        is BinarySearchResult.Exact -> throw RuntimeException("Object modified to same value as an existing object ($newValue)")
+                        is BinarySearchResult.Between -> insertPoint.highIndex
+                    }
+                    insertListeners.values.forEach { it(insertionIndex, newKeyValue) }
+
+                    val oldKeyValue = KeyValue(kv.key, oldValue)
+                    val removePoint = orderedList.betterBinarySearch(oldKeyValue, kvComparator)
+                    val removalIndex = when (removePoint) {
+                        is BinarySearchResult.Exact -> removePoint.index
+                        is BinarySearchResult.Between -> throw RuntimeException("Object modified from an unknown value ($oldValue)")
+                    }
+                    removeListeners.values.forEach { it(removalIndex, oldKeyValue) }
+                }
+            })
+        }
     }
 
-    private val insertListeners = ConcurrentHashMap<Long, (Int, T) -> Unit>()
-    private val removeListeners = ConcurrentHashMap<Long, (Int, T) -> Unit>()
+    private val insertListeners = ConcurrentHashMap<Long, (Int, KeyValue<T>) -> Unit>()
+    private val removeListeners = ConcurrentHashMap<Long, (Int, KeyValue<T>) -> Unit>()
 
-    fun onInsert(listener : (Int, T) -> Unit) : Long {
+    val entries : List<T> get() = keyValueEntries.map(KeyValue<T>::value)
+
+    val keyValueEntries : List<KeyValue<T>> = orderedList
+
+    fun onInsert(listener : (Int, KeyValue<T>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         insertListeners.put(handle, listener)
         return handle
@@ -59,7 +89,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         insertListeners.remove(handle)
     }
 
-    fun onRemove(listener : (Int, T) -> Unit) : Long {
+    fun onRemove(listener : (Int, KeyValue<T>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         removeListeners.put(handle, listener)
         return handle
