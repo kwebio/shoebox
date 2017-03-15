@@ -2,45 +2,35 @@ package com.github.sanity.shoebox.demos
 
 import com.github.sanity.shoebox.Store
 import com.github.sanity.shoebox.View
-import com.github.sanity.shoebox.mkdirIfAbsent
-import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * Created by ian on 3/9/17.
  */
-class Data(val dir : Path) {
-    init {
-        dir.mkdirIfAbsent()
-    }
-    val userStore = Store(dir.resolve("usersByUid"), User::class)
-    val pageStore = Store(dir.resolve("pages"), Page::class)
-    val userPageStore = Store(dir.resolve("userPageStore"), UserPage::class)
-    val estimates = Store(dir.resolve("estimates"), Estimate::class)
+data class User(val name : String, val gender : String, val email : String)
 
-    val users = Users(this)
+val dir = Paths.get(".")
 
-    val pages = Pages(this)
+val userStore = Store(dir.resolve("users"), User::class)
+val usersByEmail = View(dir.resolve("usersByEmail"), userStore, viewBy = User::email)
+val usersByGender = View(dir.resolve("usersByGender"), userStore, viewBy = User::gender)
 
-    fun estimatesOf(creatorName: String): View<Estimate> {
-        val dir = dir.mkdirIfAbsent()
-        return View<Estimate>(dir.resolve("estimates"), estimates, viewBy = {it.p1p2weightRatio.toString()})
-    }
+fun main(args : Array<String>) {
+    userStore["ian"] = User("Ian Clarke", "male", "ian@blah.com")
+    val fredUser = User("Fred Smith", "male", "fred@blah.com")
+    userStore["fred"] = fredUser
+    userStore["sue"] = User("Sue Smith", "female", "fred@blah.com")
 
-    class Users(val data: Data) {
-        val byEmail = View(data.dir.resolve("usersByNickname"), data.userStore, viewBy = {it.email ?: "unknown"})
-        val byPage = View(data.dir.resolve("usersByPage"), data.userPageStore, viewBy = {it.page})
-    }
+    println(usersByEmail["ian@blah.com"])   // Will print setOf(User("Ian Clarke", "ian@blah.com"))
+    println(usersByGender["male"])          // Will print setOf(User("Ian Clarke", "ian@blah.com"),
+                                            //                  User("Fred Smith", "male", "fred@blah.com"))
 
-    class Pages(val data: Data) {
-        val byUser = View(data.dir.resolve("pagesByUser"), data.userPageStore, viewBy = {it.user})
-    }
+    usersByGender.onAdd("male", {kv ->
+        println("${kv.key} became male")
+    })
+    usersByGender.onRemove("male", {kv ->
+        println("${kv.key} ceased to be male")
+    })
 
-    data class User(val name : String, val email : String?)
-
-    data class Page(val name : String, val title : String)
-
-    data class UserPage(val user : String, val page : String)
-
-    data class Estimate(val creatorName : String, val page1 : String, val page2 : String, val p1p2weightRatio : Int)
-
+    userStore["fred"] = fredUser.copy(gender = "female") // Will print "fred ceased to be male"
 }
