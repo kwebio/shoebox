@@ -1,84 +1,38 @@
-package com.github.sanity.shoebox
+package com.github.sanity.shoebox.generic
 
+import com.github.sanity.shoebox.generic.KeyValue
+import com.github.sanity.shoebox.listenerHandleSource
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
-import com.google.gson.GsonBuilder
-import java.nio.file.Files
-import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.reflect.KClass
 
 /**
- * Created by ian on 3/9/17.
-
- * TODO: 1) Add a lockfile mechanism to prevent multiple JVMs or threads from
- * TODO:    using the same directory
- * TODO: 2) Handle changes that occur to the filesystem which aren't initiated here
- * TODO:    (then remove the previous lockfile mechanism)
+ * Created by stefan on 15.03.17.
  */
 
-class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
-
-    init {
-        Files.createDirectories(parentDirectory)
-    }
-
-    internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(
-            object : CacheLoader<String, T?>() {
-                override fun load(key: String): T? {
-                    return this@Store.load(key)
-                }
-            }
-    )
+abstract class AStore<T : Any>( ) {
 
     private val keySpecificChangeListeners = ConcurrentHashMap<String, ConcurrentHashMap<Long, (T, T, Boolean) -> Unit>>()
     private val newListeners = ConcurrentHashMap<Long, (KeyValue<T>, Boolean) -> Unit>()
     private val removeListeners = ConcurrentHashMap<Long, (KeyValue<T>, Boolean) -> Unit>()
     private val changeListeners = ConcurrentHashMap<Long, (T, KeyValue<T>, Boolean) -> Unit>()
-    
-    private val gson = GsonBuilder().create()
 
-    /**
-     * Return entries key-value pairs in this Store as an Iterable
-     */
-    val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(parentDirectory)
-            .mapNotNull {
-                val fileKey = it.fileName.toString()
-                KeyValue(fileKey, this[fileKey]!!)
-            }
+    /** retrieve all elements **/
+    abstract val entries: Iterable<KeyValue<T>>
 
-    operator fun get(key: String): T? {
-        return cache.getIfPresent(key) ?: load(key)
-    }
+    /** retrieve element by key **/
+    abstract operator fun get(key: String): T?
 
     fun remove(key: String) {
-        val cachedValue: T? = cache.getIfPresent(key)
-        val filePath = parentDirectory.resolve(key)
-        if (Files.exists(filePath)) {
-            val oldValue = cachedValue ?: load(key)
-            if (oldValue != null) {
-                Files.delete(filePath)
-                removeListeners.values.forEach { t -> t(KeyValue(key, oldValue), true) }
-            }
-        }
-        if (cachedValue != null) {
-            cache.invalidate(key)
+        val oldValue = get(key)
+        remove(key,oldValue)
+        if (oldValue!=null) {
+            removeListeners.values.forEach { t -> t(KeyValue(key, oldValue), true) }
         }
     }
 
-    private fun load(key: String): T? {
-        val filePath = parentDirectory.resolve(key)
-        if (Files.exists(filePath)) {
-            val o = filePath.newBufferedReader().use {
-               gson.fromJson(it, kc.javaObjectType)
-            }
-            cache.put(key, o)
-            return o
-        } else {
-            return null
-        }
-    }
+    abstract fun remove(key:String, oldValue:T?)
 
     operator fun set(key: String, value: T) {
         val previousValue = get(key)
@@ -88,15 +42,13 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
             changeListeners.values.forEach { cl -> cl(previousValue, KeyValue(key, value), true) }
             keySpecificChangeListeners[key]?.values?.forEach { l -> l(previousValue, value, true) }
         }
-        cache.put(key, value)
         if (value != previousValue) {
-            if (!parentDirectory.exists()) throw RuntimeException("Parent directory doesn't exist")
-            val filePath = parentDirectory.resolve(key)
-            filePath.newBufferedWriter().use {
-                gson.toJson(value, kc.javaObjectType, it)
-            }
+            store(key, value)
         }
     }
+
+    abstract fun store(key:String, value:T)
+
 
     fun onNew(listener: (KeyValue<T>, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
@@ -117,13 +69,13 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     fun deleteRemoveListener(handle : Long) {
         removeListeners.remove(handle)
     }
-    
+
     fun onChange(listener: (T, KeyValue<T>, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         changeListeners.put(handle, listener)
         return handle
     }
-    
+
     fun onChange(key: String, listener: (T, T, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         keySpecificChangeListeners.computeIfAbsent(key, { ConcurrentHashMap() }).put(handle, listener)
@@ -142,5 +94,5 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
             }
         }
     }
-}
 
+}
