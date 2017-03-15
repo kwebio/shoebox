@@ -12,7 +12,7 @@ class OrderedViewSetSpec : FreeSpec() {
     init {
         "an OrderedViewSet" - {
 
-            "should be initialized correctly" - {
+            "on initialization" - {
                 val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
                 userMap["zool"] = User("Zool", Gender.MALE)
                 userMap["george"] = User("George", Gender.MALE)
@@ -41,7 +41,7 @@ class OrderedViewSetSpec : FreeSpec() {
                 femaleViewSet.keyValueEntries shouldEqual listOf(KeyValue("jill", User("Jill", Gender.FEMALE)))
             }
 
-            "should detect a value addition" - {
+            "when a value is added" - {
                 val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
                 userMap["jack"] = User("Jack", Gender.MALE)
                 userMap["paul"] = User("Paul", Gender.MALE)
@@ -53,14 +53,14 @@ class OrderedViewSetSpec : FreeSpec() {
                 var callCount = 0
                 val insertHandle = maleViewSet.onInsert { ix, keyValue ->
                     callCount++
-                    "should call the handler with the correct values" {
+                    "should call the insert handler with the correct values" {
                         callCount shouldBe 1
                         ix shouldBe 2
                         keyValue shouldBe KeyValue("peter", User("Peter", Gender.MALE))
                     }
                 }
                 userMap["peter"] = User("Peter", Gender.MALE)
-                "should call the handler" {
+                "should call the insert handler" {
                     callCount shouldBe 1
                 }
 
@@ -72,14 +72,14 @@ class OrderedViewSetSpec : FreeSpec() {
                     )
                 }
 
-                "should not call the handler after it has been deleted" {
+                "should not call the insert handler after it has been deleted" {
                     maleViewSet.deleteInsertListener(insertHandle)
                     userMap["toby"] = User("Toby", Gender.MALE)
                     callCount shouldBe 1
                 }
             }
 
-            "should detect a value deletion" - {
+            "when a value is deleted" - {
                 val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
                 userMap["jack"] = User("Jack", Gender.MALE)
                 userMap["paul"] = User("Paul", Gender.MALE)
@@ -91,14 +91,14 @@ class OrderedViewSetSpec : FreeSpec() {
                 var callCount = 0
                 val removeHandle = maleViewSet.onRemove { ix, keyValue ->
                     callCount++
-                    "should call the handler with the correct values" {
+                    "should call the delete handler with the correct values" {
                         callCount shouldBe 1
                         ix shouldBe 0
                         keyValue shouldBe KeyValue("jack", User("Jack", Gender.MALE))
                     }
                 }
                 userMap.remove("jack")
-                "should call the handler" {
+                "should call the remove handler" {
                     callCount shouldBe 1
                 }
 
@@ -117,7 +117,8 @@ class OrderedViewSetSpec : FreeSpec() {
 
             "should detect a value reorder" - {
                 val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
-                userMap["jack"] = User("Jack", Gender.MALE)
+                val jackUser = User("Jack", Gender.MALE)
+                userMap["jack"] = jackUser
                 userMap["paul"] = User("Paul", Gender.MALE)
                 userMap["jill"] = User("Jill", Gender.FEMALE)
                 val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = { it.gender.toString() })
@@ -125,21 +126,22 @@ class OrderedViewSetSpec : FreeSpec() {
                 val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
 
                 var callCount = 0
+                val renamedJackUser = jackUser.copy(name = "Zeus")
                 maleViewSet.onInsert { ix, keyValue ->
                     callCount++
                     "should call the insert handler with the correct values" {
                         ix shouldBe 2
-                        keyValue shouldBe KeyValue("jack", User("Zeus", Gender.MALE))
+                        keyValue shouldBe KeyValue("jack", renamedJackUser)
                     }
                 }
                 maleViewSet.onRemove { ix, keyValue ->
                     callCount++
                     "should call the remove handler with the correct values" {
                         ix shouldBe 0
-                        keyValue shouldBe KeyValue("jack", User("Jack", Gender.MALE))
+                        keyValue shouldBe KeyValue("jack", jackUser)
                     }
                 }
-                userMap["jack"] = User("Zeus", Gender.MALE)
+                userMap["jack"] = renamedJackUser
 
                 "should call both handlers" {
                     callCount shouldBe 2
