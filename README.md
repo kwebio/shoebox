@@ -2,16 +2,20 @@
 
 [![Build Status](https://travis-ci.org/sanity/shoebox.svg?branch=master)](https://travis-ci.org/sanity/shoebox)
 
-ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence that supports change observers.
+ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence that supports the 
+[observer pattern](https://en.wikipedia.org/wiki/Observer_pattern) so your code can be notified immediately when 
+stored data is changed.
 
 ShoeBox was created as a persistence layer for [Kweb](http://kweb.io/) applications, motivated by
-the lack of simple persistence mechanisms that support observation.  However, ShoeBox does not depend on Kweb.
+the lack of a simple persistence mechanism that supports the observer pattern.  However, ShoeBox does not depend on 
+Kweb.
 
 The idea is to create a "bridge" library between Shoebox and Kweb that will allow "binding" of UI components to
-persistent state, [here is a video](https://www.youtube.com/watch?v=0Q-BUldFZjA) illustrating this idea for TornadoFX on Android.
+persistent state, also known as the [data mapper pattern](https://en.m.wikipedia.org/wiki/Data_mapper_pattern), 
+[here is a video](https://www.youtube.com/watch?v=0Q-BUldFZjA) illustrating this idea for TornadoFX on Android.
 
 ### Features
-* Semantics similar to MutableMap
+* Functionality similar to MutableMap
 * Add listeners for object addition, deletion, and modification
 * Fairly comprehensive unit tests
 * Add views, which can index objects by any computed value, and which will stay in sync automatically
