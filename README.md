@@ -4,8 +4,9 @@
 
 ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence that supports change observers.
 
-ShoeBox was created as a simple persistence layer for [Kweb](http://kweb.io/) applications, motivated primarily by
-the lack of simple peristence mechanisms that support observation.
+ShoeBox was created as a simple persistence layer for [Kweb](http://kweb.io/) applications, motivated by
+the lack of simple peristence mechanisms that support observation.  However, ShoeBox is standalone and has no 
+dependency on Kweb.
 
 ### Features
 * Semantics similar to MutableMap
