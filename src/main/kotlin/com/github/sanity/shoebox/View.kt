@@ -27,7 +27,7 @@ class View<T : Any>(val parentDirectory: Path,
             if (locallyInitiated) {
                 addValue(viewKey, key)
             }
-            addListeners[viewKey]?.values?.forEach { it(key, value) }
+            addListeners[viewKey]?.values?.forEach { it(KeyValue(key, value)) }
 
         }
         changeListenerHandler = viewOf.onChange { key, previousValue, nextValue, locallyInitiated ->
@@ -37,10 +37,10 @@ class View<T : Any>(val parentDirectory: Path,
                     val nextViewKey = viewBy(nextValue)
                     if (previousViewKey != nextViewKey) {
 
-                        removeListeners[previousViewKey]?.values?.forEach { it(key, previousValue) }
+                        removeListeners[previousViewKey]?.values?.forEach { it(KeyValue(key, previousValue)) }
                         removeValue(previousViewKey, key)
 
-                        addListeners[nextViewKey]?.values?.forEach { it(key, nextValue) }
+                        addListeners[nextViewKey]?.values?.forEach { it(KeyValue(key, nextValue)) }
                         addValue(nextViewKey, key)
                     }
                 }
@@ -49,7 +49,7 @@ class View<T : Any>(val parentDirectory: Path,
         removeListenerHandler = viewOf.onRemove { key, value, locallyInitiated ->
             if (locallyInitiated) {
                 val viewKey = viewBy(value)
-                removeListeners[viewKey]?.values?.forEach { it(key, value) }
+                removeListeners[viewKey]?.values?.forEach { it(KeyValue(key, value)) }
                 removeValue(viewKey, key)
             }
         }
@@ -76,11 +76,11 @@ class View<T : Any>(val parentDirectory: Path,
         return reference?.keys?.mapNotNull { key ->
             val v = viewOf[key]
             if (v == null) {
-                removeListeners[viewKey]?.values?.forEach { it(key, null) }
+                removeListeners[viewKey]?.values?.forEach { it(KeyValue(key, null)) }
                 removeValue(viewKey, key)
                 null
             } else if (viewBy(v) != viewKey) {
-                removeListeners[viewKey]?.values?.forEach { it(key, null) }
+                removeListeners[viewKey]?.values?.forEach { it(KeyValue(key, null)) }
                 removeValue(viewKey, key)
                 null
             } else {
@@ -89,10 +89,9 @@ class View<T : Any>(val parentDirectory: Path,
         }?.toSet() ?: Collections.emptySet()
     }
 
-    private val addListeners = ConcurrentHashMap<String, MutableMap<Long, (String, T) -> Unit>>()
-    private val removeListeners = ConcurrentHashMap<String, MutableMap<Long, (String, T?) -> Unit>>()
+    private val addListeners = ConcurrentHashMap<String, MutableMap<Long, (KeyValue<T>) -> Unit>>()
 
-    fun onAdd(viewKey : String, listener : (String, T) -> Unit) : Long {
+    fun onAdd(viewKey : String, listener : (KeyValue<T>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         addListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
         return handle
@@ -102,7 +101,9 @@ class View<T : Any>(val parentDirectory: Path,
         addListeners.get(viewKey)?.remove(handle)
     }
 
-    fun onRemove(viewKey : String, listener : (String, T?) -> Unit) : Long {
+    private val removeListeners = ConcurrentHashMap<String, MutableMap<Long, (KeyValue<T?>) -> Unit>>()
+
+    fun onRemove(viewKey : String, listener : (KeyValue<T?>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         removeListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
         return handle

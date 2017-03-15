@@ -33,13 +33,13 @@ class ViewSpec : FreeSpec() {
             userMap["jill"] = User("Jill", FEMALE)
             val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = {it.gender.toString()})
 
-            val addListener = CountingListener("jack", User("Jack", FEMALE))
-            viewByGender.onAdd("MALE", addListener::invoke) // Should have no effect
-            viewByGender.onAdd("FEMALE", addListener::invoke)
+            val addListener = CountingListener<User>(KeyValue("jack", User("Jack", FEMALE)))
+            viewByGender.onAdd("MALE", addListener::add) // Should have no effect
+            viewByGender.onAdd("FEMALE", addListener::add)
 
-            val removeListener = CountingListener("jack", User("Jack", MALE))
-            viewByGender.onRemove("MALE", removeListener::invoke)
-            viewByGender.onRemove("FEMALE", removeListener::invoke) // Should have no effect
+            val removeListener = CountingListener<User>(KeyValue("jack", User("Jack", MALE)))
+            viewByGender.onRemove("MALE", removeListener::remove)
+            viewByGender.onRemove("FEMALE", removeListener::remove) // Should have no effect
 
             userMap["jack"] = User("Jack", FEMALE)
 
@@ -74,8 +74,8 @@ class ViewSpec : FreeSpec() {
             userMap["jack"] = User("Jack", MALE)
             userMap["jill"] = User("Jill", FEMALE)
             val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = {it.gender.toString()})
-            val addListener = CountingListener("paul", User("Paul", MALE))
-            viewByGender.onAdd("MALE", addListener::invoke)
+            val addListener = CountingListener<User>(KeyValue("paul", User("Paul", MALE)))
+            viewByGender.onAdd("MALE", addListener::add)
             userMap["paul"] = User("Paul", MALE)
             viewByGender.references["MALE"]!!.keys shouldEqual setOf("jack", "paul")
             viewByGender["MALE"] shouldEqual setOf(User("Paul", MALE), User("Jack", MALE))
@@ -91,8 +91,8 @@ class ViewSpec : FreeSpec() {
             userMap["jack"] = User("Jack", MALE)
             userMap["jill"] = User("Jill", FEMALE)
             val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = {it.gender.toString()})
-            val removeListener = CountingListener("jill", User("Jill", FEMALE))
-            viewByGender.onRemove("FEMALE", removeListener::invoke)
+            val removeListener = CountingListener<User>(KeyValue("jill", User("Jill", FEMALE)))
+            viewByGender.onRemove("FEMALE", removeListener::remove)
             userMap.remove("jill")
             viewByGender.references["FEMALE"]!!.keys should beEmpty()
             viewByGender["FEMALE"] should beEmpty()
@@ -113,13 +113,17 @@ class ViewSpec : FreeSpec() {
         }
     }
 
-    class CountingListener<T>(val correctName : String, val correctObject : T?) {
+    class CountingListener<T>(val correct : KeyValue<in T?>) {
         private val _counter = AtomicInteger(0)
 
-        operator fun invoke(name : String, obj : T?) {
+        fun add(kv : KeyValue<T>) {
             _counter.incrementAndGet()
-            if (name != correctName) throw AssertionError("$name != $correctName")
-            if (obj != correctObject) throw AssertionError("$obj != $correctObject")
+            if (kv != correct) throw AssertionError("$kv != $correct")
+        }
+
+        fun remove(kv : KeyValue<T?>) {
+            _counter.incrementAndGet()
+            if (kv != correct) throw AssertionError("$kv != $correct")
         }
 
         val counter get() = _counter.get()

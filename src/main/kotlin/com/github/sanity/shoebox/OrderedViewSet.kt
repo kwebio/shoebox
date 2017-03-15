@@ -21,21 +21,19 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         ol.addAll(view.getKeyValues(viewKey))
         ol.sortWith(kvComparator)
         orderedList = ol
-        additionHandle = view.onAdd(viewKey) { key, value ->
-            val keyValue = KeyValue(key, value)
+        additionHandle = view.onAdd(viewKey) { keyValue ->
             val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
             val insertionPoint: Int = when (binarySearchResult) {
-                is BinarySearchResult.Exact -> throw RuntimeException("Listener called for value already in list ($value)")
+                is BinarySearchResult.Exact -> throw RuntimeException("Listener called for value already in list ($keyValue)")
                 is BinarySearchResult.Between -> binarySearchResult.highIndex
             }
             ol.add(insertionPoint, keyValue)
             insertListeners.values.forEach { it(insertionPoint, keyValue) }
         }
 
-        removalHandle = view.onRemove(viewKey) { key, value ->
-            if (value != null) {
-                val keyValue = KeyValue(key, value)
-                val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
+        removalHandle = view.onRemove(viewKey) { keyValue ->
+            if (keyValue.value != null) {
+                val binarySearchResult = orderedList.betterBinarySearch(keyValue as KeyValue<T>, kvComparator)
                 when (binarySearchResult) {
                     is BinarySearchResult.Exact -> {
                         removeListeners.values.forEach { it(binarySearchResult.index, keyValue) }
