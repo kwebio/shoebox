@@ -6,10 +6,8 @@ buildscript {
     ext.dokka_version = '0.9.9'
 
     repositories {
+        jcenter()
         mavenCentral()
-        maven {
-            url "http://dl.bintray.com/kotlin/kotlin-eap-1.1"
-        }
         maven {
             url "http://dl.bintray.com/kotlin/kotlinx.coroutines"
         }
