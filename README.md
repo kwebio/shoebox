@@ -26,7 +26,8 @@ dependency on Kweb.
   * This is because some MutableMap functions require loading the entire Map into RAM
 
 ### Adding to your project
-Shoebox can be added easily to your Maven or Gradle project through Jitpack: 
+Shoebox can be added easily to your Maven or Gradle project through Jitpack:
+
 [![Release](https://jitpack.io/v/sanity/shoebox.svg)](https://jitpack.io/#sanity/shoebox)
 
 ### Usage Example
