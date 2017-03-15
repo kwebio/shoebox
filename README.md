@@ -12,7 +12,7 @@ library between Shoebox and Kweb that will allow "binding" of UI components to p
 the [data mapper pattern](https://en.m.wikipedia.org/wiki/Data_mapper_pattern).
 [Here is a video](https://www.youtube.com/watch?v=0Q-BUldFZjA) illustrating this idea for TornadoFX on Android.
 
-It's important to note, however, that ShoeBox is independent of Kweb, and can be used for many other things.
+It's important to note that ShoeBox is independent of Kweb and can be used for many other things.
 
 
 
