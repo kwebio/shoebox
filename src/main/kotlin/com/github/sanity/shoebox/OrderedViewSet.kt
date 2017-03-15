@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
 
     private val orderedList : MutableList<KeyValue<T>>
-    private val modificationHandlers = ArrayList<Long>()
+    private val modificationHandlers = ConcurrentHashMap<String, Long>()
     private val additionHandle: Long
     private val removalHandle: Long
 
@@ -48,7 +48,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         }
 
         ol.forEach { kv ->
-            modificationHandlers.add(view.viewOf.onChange(kv.key) {oldValue, newValue, _ ->
+            modificationHandlers.put(kv.key, view.viewOf.onChange(kv.key) {oldValue, newValue, _ ->
                 if (comparator.compare(oldValue, newValue) != 0) {
                     val newKeyValue = KeyValue(kv.key, newValue)
                     val insertPoint = orderedList.betterBinarySearch(newKeyValue, kvComparator)
@@ -83,7 +83,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         return handle
     }
 
-    fun removeInsertListener(handle : Long) {
+    fun deleteInsertListener(handle : Long) {
         insertListeners.remove(handle)
     }
 
@@ -93,12 +93,13 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         return handle
     }
 
-    fun removeRemoveListener(handle : Long) {
+    fun deleteRemoveListener(handle : Long) {
         removeListeners.remove(handle)
     }
 
     protected fun finalize() {
         view.deleteAddListener(viewKey, additionHandle)
         view.deleteRemoveListener(viewKey, removalHandle)
+        modificationHandlers.forEach { key, handler -> view.viewOf.deleteChangeListener(key, handler) }
     }
 }
