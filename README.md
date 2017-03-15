@@ -25,6 +25,10 @@ dependency on Kweb.
 * Doesn't implement the MutableMap interface
   * This is because some MutableMap functions require loading the entire Map into RAM
 
+### Adding to your project
+Shoebox can be added easily to your Maven or Gradle project through Jitpack: 
+[![Release](https://jitpack.io/v/User/Repo.svg)](https://jitpack.io/#User/Repo)
+
 ### Usage Example
 ```kotlin
 fun main(args : Array<String>) {
