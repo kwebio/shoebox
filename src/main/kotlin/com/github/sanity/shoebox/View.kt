@@ -22,35 +22,35 @@ class View<T : Any>(val parentDirectory: Path,
     private var removeListenerHandler: Long
 
     init {
-        newListenerHandler = viewOf.onNew { key, value, locallyInitiated ->
-            val viewKey = viewBy(value)
+        newListenerHandler = viewOf.onNew { keyValue, locallyInitiated ->
+            val viewKey = viewBy(keyValue.value)
             if (locallyInitiated) {
-                addValue(viewKey, key)
+                addValue(viewKey, keyValue.key)
             }
-            addListeners[viewKey]?.values?.forEach { it(KeyValue(key, value)) }
+            addListeners[viewKey]?.values?.forEach { it(keyValue) }
 
         }
-        changeListenerHandler = viewOf.onChange { key, previousValue, nextValue, locallyInitiated ->
+        changeListenerHandler = viewOf.onChange { previousValue, nextKeyValue, locallyInitiated ->
             if (locallyInitiated) {
-                if (previousValue != nextValue) {
+                if (previousValue != nextKeyValue.value) {
                     val previousViewKey = viewBy(previousValue)
-                    val nextViewKey = viewBy(nextValue)
+                    val nextViewKey = viewBy(nextKeyValue.value)
                     if (previousViewKey != nextViewKey) {
 
-                        removeListeners[previousViewKey]?.values?.forEach { it(KeyValue(key, previousValue)) }
-                        removeValue(previousViewKey, key)
+                        removeListeners[previousViewKey]?.values?.forEach { it(KeyValue(nextKeyValue.key, previousValue)) }
+                        removeValue(previousViewKey, nextKeyValue.key)
 
-                        addListeners[nextViewKey]?.values?.forEach { it(KeyValue(key, nextValue)) }
-                        addValue(nextViewKey, key)
+                        addListeners[nextViewKey]?.values?.forEach { it(nextKeyValue) }
+                        addValue(nextViewKey, nextKeyValue.key)
                     }
                 }
             }
         }
-        removeListenerHandler = viewOf.onRemove { key, value, locallyInitiated ->
+        removeListenerHandler = viewOf.onRemove { keyValue, locallyInitiated ->
             if (locallyInitiated) {
-                val viewKey = viewBy(value)
-                removeListeners[viewKey]?.values?.forEach { it(KeyValue(key, value)) }
-                removeValue(viewKey, key)
+                val viewKey = viewBy(keyValue.value)
+                removeListeners[viewKey]?.values?.forEach { it(keyValue as KeyValue<T?>) }
+                removeValue(viewKey, keyValue.key)
             }
         }
 

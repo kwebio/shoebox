@@ -37,9 +37,9 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     )
 
     private val keySpecificChangeListeners = ConcurrentHashMap<String, ConcurrentHashMap<Long, (T, T, Boolean) -> Unit>>()
-    private val newListeners = ConcurrentHashMap<Long, (String, T, Boolean) -> Unit>()
-    private val removeListeners = ConcurrentHashMap<Long, (String, T, Boolean) -> Unit>()
-    private val changeListeners = ConcurrentHashMap<Long, (String, T, T, Boolean) -> Unit>()
+    private val newListeners = ConcurrentHashMap<Long, (KeyValue<T>, Boolean) -> Unit>()
+    private val removeListeners = ConcurrentHashMap<Long, (KeyValue<T>, Boolean) -> Unit>()
+    private val changeListeners = ConcurrentHashMap<Long, (T, KeyValue<T>, Boolean) -> Unit>()
     
     private val gson = GsonBuilder().create()
 
@@ -63,7 +63,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
             val oldValue = cachedValue ?: load(key)
             if (oldValue != null) {
                 Files.delete(filePath)
-                removeListeners.values.forEach { t -> t(key, oldValue, true) }
+                removeListeners.values.forEach { t -> t(KeyValue(key, oldValue), true) }
             }
         }
         if (cachedValue != null) {
@@ -87,9 +87,9 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     operator fun set(key: String, value: T) {
         val previousValue = get(key)
         if (previousValue == null) {
-            newListeners.values.forEach { l -> l(key, value, true) }
+            newListeners.values.forEach { l -> l(KeyValue(key, value), true) }
         } else if (value != previousValue) {
-            changeListeners.values.forEach { cl -> cl(key, previousValue, value, true) }
+            changeListeners.values.forEach { cl -> cl(previousValue, KeyValue(key, value), true) }
             keySpecificChangeListeners[key]?.values?.forEach { l -> l(previousValue, value, true) }
         }
         cache.put(key, value)
@@ -102,7 +102,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         }
     }
 
-    fun onNew(listener: (String, T, Boolean) -> Unit) : Long {
+    fun onNew(listener: (KeyValue<T>, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         newListeners.put(handle, listener)
         return handle
@@ -112,7 +112,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         newListeners.remove(handle)
     }
 
-    fun onRemove(listener: (String, T, Boolean) -> Unit) : Long {
+    fun onRemove(listener: (KeyValue<T>, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         removeListeners.put(handle, listener)
         return handle
@@ -122,7 +122,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         removeListeners.remove(handle)
     }
     
-    fun onChange(listener: (String, T, T, Boolean) -> Unit) : Long {
+    fun onChange(listener: (T, KeyValue<T>, Boolean) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         changeListeners.put(handle, listener)
         return handle

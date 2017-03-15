@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Created by ian on 3/12/17.
  */
-internal class PersistedMapSpec : FreeSpec() {
+class PersistedMapSpec : FreeSpec() {
 
 
     init {
@@ -67,10 +67,9 @@ internal class PersistedMapSpec : FreeSpec() {
                 "a new object is created" - {
                     val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                     var callCount = AtomicInteger(0)
-                    val handle: Long = pm.onNew { key, obj, locallyInitiated ->
+                    val handle: Long = pm.onNew { keyValue, locallyInitiated ->
                         callCount.incrementAndGet() shouldEqual 1
-                        key shouldEqual "key1"
-                        obj shouldEqual object1
+                        keyValue shouldEqual KeyValue("key1", object1)
                         locallyInitiated shouldEqual true
                     }
                     pm["key1"] = object1
@@ -89,12 +88,11 @@ internal class PersistedMapSpec : FreeSpec() {
                     pm["key1"] = object1
                     var globalCallCount = 0
                     var keySpecificCallCount = 0
-                    val globalChangeHandle = pm.onChange { key, prev, next, locallyInitiated ->
+                    val globalChangeHandle = pm.onChange { prev, nextKeyValue, locallyInitiated ->
                         globalCallCount++
                         "global change callback should be called with the correct parameters" {
-                            key shouldEqual "key1"
                             prev shouldEqual object1
-                            next shouldEqual object2
+                            nextKeyValue shouldEqual KeyValue("key1", object2)
                             locallyInitiated shouldEqual true
                         }
                     }
@@ -131,10 +129,9 @@ internal class PersistedMapSpec : FreeSpec() {
                     val pm = Store<TestData>(Files.createTempDirectory("ss-"), TestData::class)
                     pm["key1"] = object3
                     var callCount = 0
-                    val onRemoveHandle = pm.onRemove { name, obj, locallyInitiated ->
+                    val onRemoveHandle = pm.onRemove { keyValue, locallyInitiated ->
                         callCount++
-                        name shouldEqual "key1"
-                        obj shouldEqual object3
+                        keyValue shouldEqual KeyValue("key1", object3)
                         locallyInitiated shouldEqual true
 
                     }
