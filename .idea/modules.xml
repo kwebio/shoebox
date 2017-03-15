@@ -3,8 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/shoebox.iml" filepath="$PROJECT_DIR$/.idea/modules/shoebox.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/shoebox_main.iml" filepath="$PROJECT_DIR$/.idea/modules/shoebox_main.iml" group="shoebox" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/shoebox_test.iml" filepath="$PROJECT_DIR$/.idea/modules/shoebox_test.iml" group="shoebox" />
     </modules>
   </component>
 </project>

@@ -22,15 +22,12 @@ dependency on Kweb.
 
 ### Usage Example
 ```kotlin
-data class User(val name : String, val gender : String, val email : String)
-
-val dir = Paths.get(".")
-
-val userStore = Store(dir.resolve("users"), User::class)
-val usersByEmail = View(dir.resolve("usersByEmail"), userStore, viewBy = User::email)
-val usersByGender = View(dir.resolve("usersByGender"), userStore, viewBy = User::gender)
-
 fun main(args : Array<String>) {
+    val dir = Files.createTempDirectory("sb-")
+    val userStore = Store(dir.resolve("users"), User::class)
+    val usersByEmail = View(dir.resolve("usersByEmail"), userStore, viewBy = User::email)
+    val usersByGender = View(dir.resolve("usersByGender"), userStore, viewBy = User::gender)
+
     userStore["ian"] = User("Ian Clarke", "male", "ian@blah.com")
     val fredUser = User("Fred Smith", "male", "fred@blah.com")
     userStore["fred"] = fredUser
@@ -49,6 +46,8 @@ fun main(args : Array<String>) {
 
     userStore["fred"] = fredUser.copy(gender = "female") // Will print "fred ceased to be male"
 }
+
+data class User(val name : String, val gender : String, val email : String)
 ```
 
 ### Documentation
