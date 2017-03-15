@@ -40,7 +40,7 @@ fun main(args : Array<String>) {
 
     userStore["ian"] = User("Ian Clarke", "male", "ian@blah.com")
     userStore["fred"] = User("Fred Smith", "male", "fred@blah.com")
-    userStore["sue"] = User("Sue Smith", "female", "fred@blah.com")
+    userStore["sue"] = User("Sue Smith", "female", "sue@blah.com")
 
     println(usersByEmail["ian@blah.com"])   // [User(name=Ian Clarke, gender=male, email=ian@blah.com)]
     println(usersByGender["male"])          // [User(name=Ian Clarke, gender=male, email=ian@blah.com), 
