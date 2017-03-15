@@ -1,4 +1,4 @@
-package propheto
+package com.github.sanity.shoebox
 
 import java.nio.file.Files
 import java.nio.file.OpenOption
