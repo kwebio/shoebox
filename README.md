@@ -8,15 +8,13 @@ stored data is changed.
 
 ### Motivation
 
-ShoeBox was created as a persistence layer for [Kweb](http://kweb.io/) applications, motivated by
-the lack of a simple persistence mechanism that supports the observer pattern.  The idea is to create a "bridge" 
-library between Shoebox and Kweb that will allow "binding" of UI components to persistent state, also known as 
+While it is a standalone library, ShoeBox was created as a persistence layer for [Kweb](http://kweb.io/) applications, 
+motivated by the lack of a simple persistence mechanism that supports the observer pattern.  The idea is to create a 
+"bridge" library between Shoebox and Kweb that will allow "binding" of UI components to persistent state, also known as 
 the [data mapper pattern](https://en.m.wikipedia.org/wiki/Data_mapper_pattern).
 [Here is a video](https://www.youtube.com/watch?v=0Q-BUldFZjA) illustrating this idea for TornadoFX on Android.
 
-It's important to note that ShoeBox is independent of Kweb and can be used for many other things.
-
-
+To emphasize, however, Shoebox doesn't depend on Kweb and should be useful for many other things.
 
 ### Features
 * Functionality similar to MutableMap
