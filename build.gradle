@@ -53,6 +53,7 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     compile 'com.github.salomonbrys.kotson:kotson:2.3.0'
     compile 'com.google.guava:guava:18.0'
+    compile 'net.incongru.watchservice:barbary-watchservice:1.0'
 
     testCompile 'io.kotlintest:kotlintest:1.3.7'
 }

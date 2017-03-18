@@ -21,16 +21,16 @@ class View<T : Any>(val parentDirectory: Path,
     private var removeListenerHandler: Long
 
     init {
-        newListenerHandler = viewOf.onNew { keyValue, locallyInitiated ->
+        newListenerHandler = viewOf.onNew { keyValue, source ->
             val viewKey = viewBy(keyValue.value)
-            if (locallyInitiated) {
+            if (source == Source.LOCAL) {
                 addValue(viewKey, keyValue.key)
             }
             addListeners[viewKey]?.values?.forEach { it(keyValue) }
 
         }
-        changeListenerHandler = viewOf.onChange { previousValue, nextKeyValue, locallyInitiated ->
-            if (locallyInitiated) {
+        changeListenerHandler = viewOf.onChange { previousValue, nextKeyValue, source ->
+            if (source == Source.LOCAL) {
                 if (previousValue != nextKeyValue.value) {
                     val previousViewKey = viewBy(previousValue)
                     val nextViewKey = viewBy(nextKeyValue.value)
@@ -45,8 +45,8 @@ class View<T : Any>(val parentDirectory: Path,
                 }
             }
         }
-        removeListenerHandler = viewOf.onRemove { keyValue, locallyInitiated ->
-            if (locallyInitiated) {
+        removeListenerHandler = viewOf.onRemove { keyValue, source ->
+            if (source == Source.LOCAL) {
                 val viewKey = viewBy(keyValue.value)
                 removeListeners[viewKey]?.values?.forEach { it(keyValue as KeyValue<T?>) }
                 removeValue(viewKey, keyValue.key)
