@@ -75,5 +75,5 @@ data class User(val name : String, val gender : String, val email : String)
 
 ### Documentation
 * API
-  * [0.1.4](https://jitpack.io/com/github/sanity/shoebox/0.1.4/javadoc/)
+  * [0.1.5](https://jitpack.io/com/github/sanity/shoebox/0.1.4/javadoc/)
   * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)
