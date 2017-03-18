@@ -47,7 +47,7 @@ Shoebox can be added easily to your Maven or Gradle project through Jitpack:
 ```kotlin
 fun main(args : Array<String>) {
     val dir = Files.createTempDirectory("sb-")
-    val userStore = Store(dir.resolve("users"), User::class)
+    val userStore = Store<User>(dir.resolve("users"))
     val usersByEmail = View(dir.resolve("usersByEmail"), userStore, viewBy = User::email)
     val usersByGender = View(dir.resolve("usersByGender"), userStore, viewBy = User::gender)
 

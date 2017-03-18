@@ -9,19 +9,29 @@ import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
-/**
- * Created by ian on 3/9/17.
 
+ /*
  * TODO: 1) Add a lockfile mechanism to prevent multiple JVMs or threads from
  * TODO:    using the same directory
  * TODO: 2) Handle changes that occur to the filesystem which aren't initiated here
  * TODO:    (then remove the previous lockfile mechanism)
  */
 
-class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
+/**
+ * Create a persistent string-indexed datastore
+ *
+ * @param T The type of the objects to store, these must be serializable with [Gson](https://github.com/google/gson),
+ *          https://github.com/google/gson
+ *
+ * @param directory The path to a directory in which data will be stored, will be created if it doesn't already exist
+ *
+ **/
+inline fun <reified T : Any> Store(directory : Path) = Store(directory, T::class)
+
+class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
 
     init {
-        Files.createDirectories(parentDirectory)
+        Files.createDirectories(directory)
     }
 
     internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(
@@ -42,7 +52,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     /**
      * Return entries key-value pairs in this Store as an Iterable
      */
-    val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(parentDirectory)
+    val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(directory)
             .mapNotNull {
                 val fileKey = it.fileName.toString()
                 KeyValue(fileKey, this[fileKey]!!)
@@ -54,7 +64,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
 
     fun remove(key: String) {
         val cachedValue: T? = cache.getIfPresent(key)
-        val filePath = parentDirectory.resolve(key)
+        val filePath = directory.resolve(key)
         if (Files.exists(filePath)) {
             val oldValue = cachedValue ?: load(key)
             if (oldValue != null) {
@@ -68,7 +78,7 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
     }
 
     private fun load(key: String): T? {
-        val filePath = parentDirectory.resolve(key)
+        val filePath = directory.resolve(key)
         if (Files.exists(filePath)) {
             val o = filePath.newBufferedReader().use {
                gson.fromJson(it, kc.javaObjectType)
@@ -90,8 +100,8 @@ class Store<T : Any>(val parentDirectory: Path, private val kc: KClass<T>) {
         }
         cache.put(key, value)
         if (value != previousValue) {
-            if (!parentDirectory.exists()) throw RuntimeException("Parent directory doesn't exist")
-            val filePath = parentDirectory.resolve(key)
+            if (!directory.exists()) throw RuntimeException("Parent directory doesn't exist")
+            val filePath = directory.resolve(key)
             filePath.newBufferedWriter().use {
                 gson.toJson(value, kc.javaObjectType, it)
             }
