@@ -1,7 +1,9 @@
 package com.github.sanity.shoebox
 
+import io.kotlintest.matchers.be
 import io.kotlintest.specs.FreeSpec
 import java.nio.file.Files
+import java.nio.file.attribute.FileTime
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -12,6 +14,39 @@ class StoreSpec : FreeSpec() {
 
     init {
         "A Shoebox store" - {
+            "locking mechanism" - {
+                    val dir = Files.createTempDirectory("ss-")
+                    val pm = Store<TestData>(dir)
+                "should create a lockfile" {
+                    Files.exists(dir.resolve("shoebox.lock")) shouldBe true
+                }
+                "should throw an exception if attempting to create a store for a directory that already has a store" {
+
+                shouldThrow<RuntimeException> {
+                        Store<TestData>(dir)
+                    }
+                }
+                "should disregard an old lock" {
+                    val dir = Files.createTempDirectory("ss-")
+                    val lockFilePath = dir.resolve("shoebox.lock")
+                    Files.newBufferedWriter(lockFilePath).use {
+                        it.appendln("lock")
+                    }
+                    Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()-60000))
+                    Store<TestData>(dir)
+                }
+
+                "should update an old lock" {
+                    val dir = Files.createTempDirectory("ss-")
+                    val lockFilePath = dir.resolve("shoebox.lock")
+                    Files.newBufferedWriter(lockFilePath).use {
+                        it.appendln("lock")
+                    }
+                    Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()-60000))
+                    Store<TestData>(dir)
+                    Files.getLastModifiedTime(lockFilePath).toMillis() should be gt(System.currentTimeMillis()-5000)
+                }
+            }
             val object1 = TestData(1, 2)
             val object2 = TestData(3, 4)
             "when an item is stored" - {

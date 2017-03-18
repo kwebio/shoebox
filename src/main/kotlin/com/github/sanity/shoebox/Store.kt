@@ -6,7 +6,9 @@ import com.google.common.cache.LoadingCache
 import com.google.gson.GsonBuilder
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.attribute.FileTime
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 
@@ -36,8 +38,30 @@ inline fun <reified T : Any> Store(directory : Path) = Store(directory, T::class
  */
 class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
 
+    companion object {
+        const private val LOCK_FILENAME = "shoebox.lock"
+        const private val LOCK_TOUCH_TIME_MS = 2000.toLong()
+        const private val LOCK_STALE_TIME = LOCK_TOUCH_TIME_MS * 2
+    }
+
+    private val lockFilePath = directory.resolve(LOCK_FILENAME)
+
     init {
         Files.createDirectories(directory)
+        if (Files.exists(lockFilePath)) {
+            if (System.currentTimeMillis() - Files.getLastModifiedTime(lockFilePath).toMillis() < LOCK_STALE_TIME) {
+                throw RuntimeException("$directory locked by $lockFilePath")
+            } else {
+                Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
+            }
+        } else {
+            Files.newBufferedWriter(lockFilePath).use {
+                it.appendln("locked")
+            }
+        }
+        scheduledExecutor.scheduleWithFixedDelay({
+            Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
+        }, LOCK_TOUCH_TIME_MS, LOCK_TOUCH_TIME_MS, TimeUnit.MILLISECONDS)
     }
 
     internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(
@@ -61,9 +85,10 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
      * @return The keys and their corresponding values in this [Store]
      */
     val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(directory)
-            .mapNotNull {
-                val fileKey = it.fileName.toString()
-                KeyValue(fileKey, this[fileKey]!!)
+            .mapNotNull {it.fileName.toString()}
+            .filter {it != LOCK_FILENAME}
+            .map {
+                KeyValue(it, this[it]!!)
             }
 
     /**
@@ -182,6 +207,11 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
             }
         }
     }
+
+    protected fun finalize() {
+        Files.delete(lockFilePath)
+    }
+
 }
 
 /**

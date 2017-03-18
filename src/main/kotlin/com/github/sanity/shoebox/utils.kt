@@ -4,13 +4,14 @@ import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.util.*
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Created by ian on 3/9/17.
  */
 
-
+val scheduledExecutor = Executors.newScheduledThreadPool(1)
 
 fun Path.newBufferedReader() = Files.newBufferedReader(this)
 
