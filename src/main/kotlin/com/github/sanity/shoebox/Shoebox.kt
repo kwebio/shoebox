@@ -20,6 +20,8 @@ import kotlin.reflect.KClass
  * @param T The type of the objects to store, these must be serializable with [Gson](https://github.com/google/gson),
  *
  * @param directory The path to a directory in which data will be stored, will be created if it doesn't already exist
+ *
+ * @sample com.github.sanity.shoebox.samples.usersGender
  **/
 inline fun <reified T : Any> Shoebox(store : Store<T>) = Shoebox(store, T::class)
 inline fun <reified T : Any> Shoebox(dir : Path) = Shoebox(DirectoryStore(dir), T::class)
