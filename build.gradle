@@ -61,7 +61,9 @@ dependencies {
 task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
     outputFormat = 'html'
     outputDirectory = javadoc.destinationDir
-    inputs.dir 'src/main/kotlin'
+    inputs.dir 'src/usersGender/kotlin'
+    samples = ['com/github/sanity/shoebox/samples']
+    includes = ['packages.md']
 }
 
 task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {

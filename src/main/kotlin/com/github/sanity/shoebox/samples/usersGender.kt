@@ -1,4 +1,4 @@
-package com.github.sanity.shoebox.demos.one
+package com.github.sanity.shoebox.samples
 
 import com.github.sanity.shoebox.Shoebox
 import com.github.sanity.shoebox.View
@@ -8,7 +8,11 @@ import java.nio.file.Files
  * Created by ian on 3/9/17.
  */
 
-fun main(args : Array<String>) {
+fun main(args: Array<String>) {
+    usersGender()
+}
+
+fun usersGender() {
     val dir = Files.createTempDirectory("sb-")
     val userStore = Shoebox<User>(dir.resolve("users"))
     val usersByEmail = View(Shoebox(dir.resolve("usersByEmail")), userStore, viewBy = User::email)
