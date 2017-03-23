@@ -1,14 +1,9 @@
 package com.github.sanity.shoebox
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
-import com.google.gson.GsonBuilder
-import java.nio.file.Files
+import com.github.sanity.shoebox.stores.DirectoryStore
+import com.github.sanity.shoebox.stores.MemoryStore
 import java.nio.file.Path
-import java.nio.file.attribute.FileTime
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 
@@ -20,76 +15,31 @@ import kotlin.reflect.KClass
  */
 
 /**
- * Create a [Store], use this in preference to the Store constructor to avoid having to provide a `KClass`
+ * Create a [Shoebox], use this in preference to the Shoebox constructor to avoid having to provide a `KClass`
  *
  * @param T The type of the objects to store, these must be serializable with [Gson](https://github.com/google/gson),
  *
  * @param directory The path to a directory in which data will be stored, will be created if it doesn't already exist
  **/
-inline fun <reified T : Any> Store(directory : Path) = Store(directory, T::class)
+inline fun <reified T : Any> Shoebox(store : Store<T>) = Shoebox(store, T::class)
+inline fun <reified T : Any> Shoebox(dir : Path) = Shoebox(DirectoryStore(dir), T::class)
+inline fun <reified T : Any> Shoebox() = Shoebox(MemoryStore(), T::class)
+
 
 /**
  * Can persistently store and retrieve objects, and notify listeners of changes to those objects
  *
- * @constructor You probably want to use `Store<T>(directory)` instead
+ * @constructor You probably want to use `Shoebox<T>(directory)` instead
  * @param T The type of the objects to store, these must be serializable with [Gson](https://github.com/google/gson),
  * @param directory The path to a directory in which data will be stored, will be created if it doesn't already exist
- * @param kc The KClass associated with T.  To avoid having to provide this use `Store<T>(directory)`
+ * @param kc The KClass associated with T.  To avoid having to provide this use `Shoebox<T>(directory)`
  */
-class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
-
-    companion object {
-        const private val LOCK_FILENAME = "shoebox.lock"
-        const private val LOCK_TOUCH_TIME_MS = 2000.toLong()
-        const private val LOCK_STALE_TIME = LOCK_TOUCH_TIME_MS * 2
-    }
-
-    private val lockFilePath = directory.resolve(LOCK_FILENAME)
-
-    init {
-        Files.createDirectories(directory)
-        if (Files.exists(lockFilePath)) {
-            if (System.currentTimeMillis() - Files.getLastModifiedTime(lockFilePath).toMillis() < LOCK_STALE_TIME) {
-                throw RuntimeException("$directory locked by $lockFilePath")
-            } else {
-                Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
-            }
-        } else {
-            Files.newBufferedWriter(lockFilePath).use {
-                it.appendln("locked")
-            }
-        }
-        scheduledExecutor.scheduleWithFixedDelay({
-            Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
-        }, LOCK_TOUCH_TIME_MS, LOCK_TOUCH_TIME_MS, TimeUnit.MILLISECONDS)
-    }
-
-    internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(
-            object : CacheLoader<String, T?>() {
-                override fun load(key: String): T? {
-                    return this@Store.load(key)
-                }
-            }
-    )
+class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
 
     private val keySpecificChangeListeners = ConcurrentHashMap<String, ConcurrentHashMap<Long, (T, T, Source) -> Unit>>()
     private val newListeners = ConcurrentHashMap<Long, (KeyValue<T>, Source) -> Unit>()
     private val removeListeners = ConcurrentHashMap<Long, (KeyValue<T>, Source) -> Unit>()
     private val changeListeners = ConcurrentHashMap<Long, (T, KeyValue<T>, Source) -> Unit>()
-    
-    private val gson = GsonBuilder().create()
-
-    /**
-     * Retrieve the entries in this store, similar to [Map.entries] but lazy
-     *
-     * @return The keys and their corresponding values in this [Store]
-     */
-    val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(directory)
-            .mapNotNull {it.fileName.toString()}
-            .filter {it != LOCK_FILENAME}
-            .map {
-                KeyValue(it, this[it]!!)
-            }
 
     /**
      * Retrieve a value, similar to [Map.get]
@@ -98,7 +48,7 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
      * @return The value associated with the key, or null if no value is associated
      */
     operator fun get(key: String): T? {
-        return cache.getIfPresent(key) ?: load(key)
+        return store.get(key)
     }
 
     /**
@@ -106,32 +56,12 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
      *
      * @param key The key associated with the value to be removed, similar to [MutableMap.remove]
      */
-    fun remove(key: String) {
-        val cachedValue: T? = cache.getIfPresent(key)
-        val filePath = directory.resolve(key)
-        if (Files.exists(filePath)) {
-            val oldValue = cachedValue ?: load(key)
-            if (oldValue != null) {
-                Files.delete(filePath)
-                removeListeners.values.forEach { t -> t(KeyValue(key, oldValue), Source.LOCAL) }
-            }
+    fun remove(key: String) : T? {
+        val removed = store.remove(key)
+        if (removed != null) {
+            removeListeners.values.forEach { it.invoke(KeyValue(key, removed), Source.LOCAL) }
         }
-        if (cachedValue != null) {
-            cache.invalidate(key)
-        }
-    }
-
-    private fun load(key: String): T? {
-        val filePath = directory.resolve(key)
-        if (Files.exists(filePath)) {
-            val o = filePath.newBufferedReader().use {
-               gson.fromJson(it, kc.javaObjectType)
-            }
-            cache.put(key, o)
-            return o
-        } else {
-            return null
-        }
+        return removed
     }
 
     /**
@@ -141,25 +71,19 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
      * @param value The new value
      */
     operator fun set(key: String, value: T) {
-        val previousValue = get(key)
+        val previousValue = store.set(key, value)
         if (previousValue == null) {
             newListeners.values.forEach { l -> l(KeyValue(key, value), Source.LOCAL) }
         } else if (value != previousValue) {
             changeListeners.values.forEach { cl -> cl(previousValue, KeyValue(key, value), Source.LOCAL) }
             keySpecificChangeListeners[key]?.values?.forEach { l -> l(previousValue, value, Source.LOCAL) }
         }
-        cache.put(key, value)
-        if (value != previousValue) {
-            if (!directory.exists()) throw RuntimeException("Parent directory doesn't exist")
-            val filePath = directory.resolve(key)
-            filePath.newBufferedWriter().use {
-                gson.toJson(value, kc.javaObjectType, it)
-            }
-        }
     }
 
+    val entries get() = store.entries
+
     /**
-     * Add a listener for when a new key-value pair are added to the Store
+     * Add a listener for when a new key-value pair are added to the Shoebox
      *
      * @param listener The listener to be called
      */
@@ -208,9 +132,6 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
         }
     }
 
-    protected fun finalize() {
-        Files.delete(lockFilePath)
-    }
 
 }
 
@@ -219,7 +140,7 @@ class Store<T : Any>(val directory: Path, private val kc: KClass<T>) {
  */
 enum class Source {
     /**
-     * The event was due to a modification initiated by a call to this instance's [Store.set]
+     * The event was due to a modification initiated by a call to this instance's [Shoebox.set]
      */
     LOCAL,
     /**

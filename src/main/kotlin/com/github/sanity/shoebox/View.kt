@@ -9,12 +9,10 @@ import kotlin.concurrent.thread
  * Created by ian on 3/11/17.
  */
 
-class View<T : Any>(val parentDirectory: Path,
-                    val viewOf: Store<T>,
+class View<T : Any>(val references: Shoebox<Reference>,
+                    val viewOf: Shoebox<T>,
                     val verifyBehavior: VerifyBehavior = VerifyBehavior.BLOCKING_VERIFY,
                     val viewBy: (T) -> String) {
-
-    internal val references = Store<Reference>(parentDirectory, Reference::class)
 
     private val newListenerHandler: Long
     private val changeListenerHandler: Long

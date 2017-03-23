@@ -2,8 +2,8 @@ package com.github.sanity.shoebox
 
 import com.github.sanity.shoebox.data.Gender
 import com.github.sanity.shoebox.data.User
+import com.github.sanity.shoebox.stores.MemoryStore
 import io.kotlintest.specs.FreeSpec
-import java.nio.file.Files
 
 /**
  * Created by ian on 3/14/17.
@@ -13,14 +13,14 @@ class OrderedViewSetSpec : FreeSpec() {
         "an OrderedViewSet" - {
 
             "on initialization" - {
-                val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
+                val userMap = Shoebox<User>(MemoryStore())
                 userMap["zool"] = User("Zool", Gender.MALE)
                 userMap["george"] = User("George", Gender.MALE)
                 userMap["paul"] = User("Paul", Gender.MALE)
                 userMap["xavier"] = User("Xavier", Gender.MALE)
                 userMap["jack"] = User("Jack", Gender.MALE)
                 userMap["jill"] = User("Jill", Gender.FEMALE)
-                val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = { it.gender.toString() })
+                val viewByGender = View(Shoebox(MemoryStore()), viewOf = userMap, viewBy = { it.gender.toString() })
 
                 val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
                 val menInOrder = listOf(
@@ -42,11 +42,11 @@ class OrderedViewSetSpec : FreeSpec() {
             }
 
             "when a value is added" - {
-                val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
+                val userMap = Shoebox<User>(MemoryStore())
                 userMap["jack"] = User("Jack", Gender.MALE)
                 userMap["paul"] = User("Paul", Gender.MALE)
                 userMap["jill"] = User("Jill", Gender.FEMALE)
-                val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = { it.gender.toString() })
+                val viewByGender = View(Shoebox(MemoryStore()), viewOf = userMap, viewBy = { it.gender.toString() })
 
                 val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
 
@@ -80,11 +80,11 @@ class OrderedViewSetSpec : FreeSpec() {
             }
 
             "when a value is deleted" - {
-                val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
+                val userMap = Shoebox<User>(MemoryStore())
                 userMap["jack"] = User("Jack", Gender.MALE)
                 userMap["paul"] = User("Paul", Gender.MALE)
                 userMap["jill"] = User("Jill", Gender.FEMALE)
-                val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = { it.gender.toString() })
+                val viewByGender = View(Shoebox(MemoryStore()), viewOf = userMap, viewBy = { it.gender.toString() })
 
                 val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
 
@@ -116,12 +116,12 @@ class OrderedViewSetSpec : FreeSpec() {
             }
 
             "should detect a value reorder" - {
-                val userMap = Store<User>(Files.createTempDirectory("ss-"), User::class)
+                val userMap = Shoebox<User>(MemoryStore())
                 val jackUser = User("Jack", Gender.MALE)
                 userMap["jack"] = jackUser
                 userMap["paul"] = User("Paul", Gender.MALE)
                 userMap["jill"] = User("Jill", Gender.FEMALE)
-                val viewByGender = View(Files.createTempDirectory("ss-"), viewOf = userMap, viewBy = { it.gender.toString() })
+                val viewByGender = View(Shoebox(MemoryStore()), viewOf = userMap, viewBy = { it.gender.toString() })
 
                 val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
 

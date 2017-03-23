@@ -47,19 +47,18 @@ Shoebox can be added easily to your Maven or Gradle project through Jitpack:
 ```kotlin
 fun main(args : Array<String>) {
     val dir = Files.createTempDirectory("sb-")
-    val userStore = Store<User>(dir.resolve("users"))
-    val usersByEmail = View(dir.resolve("usersByEmail"), userStore, viewBy = User::email)
-    val usersByGender = View(dir.resolve("usersByGender"), userStore, viewBy = User::gender)
+    val userStore = Shoebox<User>(dir.resolve("users"))
+    val usersByEmail = View(Shoebox(dir.resolve("usersByEmail")), userStore, viewBy = User::email)
+    val usersByGender = View(Shoebox(dir.resolve("usersByGender")), userStore, viewBy = User::gender)
 
     userStore["ian"] = User("Ian Clarke", "male", "ian@blah.com")
     userStore["fred"] = User("Fred Smith", "male", "fred@blah.com")
     userStore["sue"] = User("Sue Smith", "female", "sue@blah.com")
 
     println(usersByEmail["ian@blah.com"])   // [User(name=Ian Clarke, gender=male, email=ian@blah.com)]
-    println(usersByGender["male"])          // [User(name=Ian Clarke, gender=male, email=ian@blah.com), 
-                                             // User(name=Fred Smith, gender=male, email=fred@blah.com)]
-                                             // note: view["xx]" returns a set of values
-
+    println(usersByGender["male"])          // [User(name=Ian Clarke, gender=male, email=ian@blah.com),
+                                            // User(name=Fred Smith, gender=male, email=fred@blah.com)]
+    // note: view["xx]" returns a set of values
     usersByGender.onAdd("male", {kv ->
         println("${kv.key} became male")
     })
@@ -71,9 +70,11 @@ fun main(args : Array<String>) {
 }
 
 data class User(val name : String, val gender : String, val email : String)
+
+data class User(val name : String, val gender : String, val email : String)
 ```
 
 ### Documentation
 * API
-  * [0.1.4](https://jitpack.io/com/github/sanity/shoebox/0.1.4/javadoc/)
+  * [0.2.0](https://jitpack.io/com/github/sanity/shoebox/0.2.0g/javadoc/)
   * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)
