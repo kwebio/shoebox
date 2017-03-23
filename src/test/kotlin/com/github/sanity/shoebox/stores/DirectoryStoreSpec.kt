@@ -14,6 +14,7 @@ class DirectoryStoreSpec : FreeSpec() {
         "DirectoryStore" - {
             "locking" - {
                 val dir = Files.createTempDirectory("ss-")
+                val directoryStore = DirectoryStore<String>(dir)
                 "should create a lockfile" {
                     Files.exists(dir.resolve("shoebox.lock")) shouldBe true
                 }
