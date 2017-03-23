@@ -1,5 +1,5 @@
 group 'com.github.sanity'
-version '0.2.1'
+version '0.2.2'
 
 buildscript {
     ext.kotlin_version = '1.1.1'
@@ -62,7 +62,9 @@ task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
     outputFormat = 'html'
     outputDirectory = javadoc.destinationDir
     inputs.dir 'src/usersGender/kotlin'
-    samples = ['com/github/sanity/shoebox/samples']
+    samples = ["samples.kt"]
+
+    // samples = ["com/github/sanity/shoebox/samples/samples.kt"]
     includes = ['packages.md']
 }
 

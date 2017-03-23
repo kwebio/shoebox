@@ -12,9 +12,5 @@
       <entry name="!?*.kt" />
       <entry name="!?*.clj" />
     </wildcardResourcePatterns>
-    <bytecodeTargetLevel>
-      <module name="shoebox_main" target="1.8" />
-      <module name="shoebox_test" target="1.8" />
-    </bytecodeTargetLevel>
   </component>
 </project>
