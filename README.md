@@ -41,7 +41,7 @@ To emphasize, however, Shoebox doesn't depend on Kweb and should be useful for m
 ### Adding to your project
 Shoebox can be added easily to your Maven or Gradle project through Jitpack:
 
-[![Release](https://jitpack.io/v/sanity/shoebox.svg)](https://jitpack.io/#kwebio/shoebox)
+[![Release](https://jitpack.io/v/kwebio/shoebox.svg)](https://jitpack.io/#kwebio/shoebox)
 
 ### Usage Example
 ```kotlin
