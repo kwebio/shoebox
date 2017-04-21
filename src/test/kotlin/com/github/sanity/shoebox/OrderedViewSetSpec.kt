@@ -115,6 +115,21 @@ class OrderedViewSetSpec : FreeSpec() {
                 }
             }
 
+            " when a second value is added that is not distinguishable based on the supplied comparator" {
+                val userMap = Shoebox<User>(MemoryStore())
+                userMap["jack"] = User("Jack", Gender.MALE)
+                userMap["jill"] = User("Jill", Gender.FEMALE)
+                val viewByGender = View(Shoebox(MemoryStore()), viewOf = userMap, viewBy = { it.gender.toString() })
+
+                val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
+
+                maleViewSet.onInsert { p, kv ->
+
+                }
+
+                userMap["paul"] = User("Paul", Gender.MALE)
+            }
+
             "should detect a value reorder" - {
                 val userMap = Shoebox<User>(MemoryStore())
                 val jackUser = User("Jack", Gender.MALE)

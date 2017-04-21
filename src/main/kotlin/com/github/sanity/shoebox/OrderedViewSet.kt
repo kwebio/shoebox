@@ -14,14 +14,16 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
 
     init {
         val ol = ArrayList<KeyValue<T>>()
-        val kvComparator : Comparator<KeyValue<T>> = Comparator<KeyValue<T>> { o1, o2 -> comparator.compare(o1.value, o2.value) }
+        val kvComparator : Comparator<KeyValue<T>> = Comparator<KeyValue<T>> { o1, o2 -> comparator.thenBy { o1.key.compareTo(o2.key) }.compare(o1.value, o2.value) }
         ol.addAll(view.getKeyValues(viewKey))
         ol.sortWith(kvComparator)
         orderedList = ol
         additionHandle = view.onAdd(viewKey) { keyValue ->
             val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
             val insertionPoint: Int = when (binarySearchResult) {
-                is BinarySearchResult.Exact -> throw RuntimeException("Listener called for value already in list ($keyValue)")
+                is BinarySearchResult.Exact -> {
+                    throw RuntimeException("Listener called for key/value already in list ($keyValue)")
+                }
                 is BinarySearchResult.Between -> binarySearchResult.highIndex
             }
             ol.add(insertionPoint, keyValue)
