@@ -14,7 +14,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
 
     init {
         val ol = ArrayList<KeyValue<T>>()
-        val kvComparator : Comparator<KeyValue<T>> = Comparator<KeyValue<T>> { o1, o2 -> comparator.thenBy { o1.key.compareTo(o2.key) }.compare(o1.value, o2.value) }
+        val kvComparator : Comparator<KeyValue<T>> = Comparator<KeyValue<T>> { o1, o2 -> comparator.compare(o1.value, o2.value) }.thenBy(KeyValue<T>::key)
         ol.addAll(view.getKeyValues(viewKey))
         ol.sortWith(kvComparator)
         orderedList = ol
@@ -22,7 +22,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
             val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
             val insertionPoint: Int = when (binarySearchResult) {
                 is BinarySearchResult.Exact -> {
-                    throw RuntimeException("Listener called for key/value already in list ($keyValue)")
+                    throw RuntimeException("Listener called for key/value already in list keyValue: $keyValue orderedList[${binarySearchResult.index}] = ${orderedList[binarySearchResult.index]}")
                 }
                 is BinarySearchResult.Between -> binarySearchResult.highIndex
             }
