@@ -134,7 +134,15 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
         }
     }
 
-
+    fun view(name : String, by : (T) -> String) : View<T> {
+        val store = when (store) {
+            is MemoryStore<T> -> MemoryStore<View.Reference>()
+            is DirectoryStore<T> ->
+                DirectoryStore<View.Reference>(store.directory.parent.resolve("${store.directory.fileName.toString()}-$name-view"))
+            else -> throw RuntimeException("Shoebox doesn't currently support creating a view for store type ${store::class.simpleName}")
+        }
+        return View<T>(Shoebox(store), this, View.VerifyBehavior.ASYNC_VERIFY, by)
+    }
 }
 
 /**

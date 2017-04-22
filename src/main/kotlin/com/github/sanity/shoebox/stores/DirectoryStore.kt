@@ -17,7 +17,7 @@ import kotlin.reflect.KClass
 
 inline fun <reified T : Any> DirectoryStore(directory : Path) = DirectoryStore(directory, T::class)
 
-class DirectoryStore<T : Any>(private val directory : Path, private val kc : KClass<T>) : Store<T> {
+class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) : Store<T> {
     companion object {
         const private val LOCK_FILENAME = "shoebox.lock"
         const private val LOCK_TOUCH_TIME_MS = 2000.toLong()
