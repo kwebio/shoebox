@@ -3,6 +3,8 @@ package com.github.sanity.shoebox
 import com.github.sanity.shoebox.data.Gender
 import com.github.sanity.shoebox.data.User
 import com.github.sanity.shoebox.stores.MemoryStore
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldEqual
 import io.kotlintest.specs.FreeSpec
 
 /**
