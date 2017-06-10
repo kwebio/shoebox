@@ -1,6 +1,6 @@
 # ShoeBox
 
-[![Build Status](https://travis-ci.org/sanity/shoebox.svg?branch=master)](https://travis-ci.org/sanity/shoebox)
+[![Build Status](https://travis-ci.org/kwebio/shoebox.svg?branch=master)](https://travis-ci.org/kwebio/shoebox)
 
 ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence that supports the 
 [observer pattern](https://en.wikipedia.org/wiki/Observer_pattern) so your code can be notified immediately when 
@@ -76,5 +76,5 @@ data class User(val name : String, val gender : String, val email : String)
 
 ### Documentation
 * API
-  * [0.2.5](https://jitpack.io/com/github/sanity/shoebox/0.2.5/javadoc/)
+  * [0.2.9](https://jitpack.io/com/github/sanity/shoebox/0.2.9/javadoc/)
   * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)
