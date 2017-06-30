@@ -82,6 +82,19 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
         }
     }
 
+    /**
+     * A utility method to make it easier to modify an existing item
+     */
+    fun modify(key : String, modifier : (T) -> T) : Boolean {
+        val oldValue = this[key]
+        return if (oldValue == null) {
+            false
+        } else {
+            this[key] = modifier(oldValue)
+            true
+        }
+    }
+
     val entries get() = store.entries
 
     /**
