@@ -1,7 +1,10 @@
 package com.github.sanity.shoebox.stores
 
 import com.github.sanity.shoebox.ShoeboxSpec
-import io.kotlintest.matchers.be
+import io.kotlintest.matchers.gt
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.matchers.shouldThrow
 import io.kotlintest.specs.FreeSpec
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
@@ -41,7 +44,7 @@ class DirectoryStoreSpec : FreeSpec() {
                     }
                     Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis() - 60000))
                     DirectoryStore<ShoeboxSpec.TestData>(dir, ShoeboxSpec.TestData::class)
-                    Files.getLastModifiedTime(lockFilePath).toMillis() should be gt (System.currentTimeMillis() - 5000)
+                    Files.getLastModifiedTime(lockFilePath).toMillis() shouldBe gt (System.currentTimeMillis() - 5000)
                 }
             }
             val object1 = ShoeboxSpec.TestData(1, 2)

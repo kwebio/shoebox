@@ -4,6 +4,9 @@ import com.github.sanity.shoebox.data.Gender.FEMALE
 import com.github.sanity.shoebox.data.Gender.MALE
 import com.github.sanity.shoebox.data.User
 import com.github.sanity.shoebox.stores.MemoryStore
+import io.kotlintest.matchers.beEmpty
+import io.kotlintest.matchers.should
+import io.kotlintest.matchers.shouldEqual
 import io.kotlintest.specs.FreeSpec
 import java.lang.AssertionError
 import java.util.concurrent.atomic.AtomicInteger

@@ -80,7 +80,7 @@ class View<T : Any>(val references: Shoebox<Reference>,
                 removeValue(viewKey, key)
                 null
             } else {
-                KeyValue<T>(key, v)
+                KeyValue(key, v)
             }
         }?.toSet() ?: Collections.emptySet()
     }
@@ -144,7 +144,7 @@ class View<T : Any>(val references: Shoebox<Reference>,
         fun addKey(key: String) = Reference(keys.plus(key))
     }
 
-    fun orderedSet(key : String, comparator : Comparator<T> = compareBy {it.hashCode()}) = OrderedViewSet<T>(this, key, comparator)
+    fun orderedSet(key : String, comparator : Comparator<T> = compareBy {it.hashCode()}) = OrderedViewSet(this, key, comparator)
 }
 
 

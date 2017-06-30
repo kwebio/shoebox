@@ -1,6 +1,8 @@
 package com.github.sanity.shoebox
 
 import com.github.sanity.shoebox.stores.MemoryStore
+import io.kotlintest.matchers.shouldBe
+import io.kotlintest.matchers.shouldEqual
 import io.kotlintest.specs.FreeSpec
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -131,6 +133,4 @@ class ShoeboxSpec : FreeSpec() {
 
     data class TestData(val one: Int, val two: Int)
 
-    override fun afterAll() {
-    }
 }
