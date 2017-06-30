@@ -164,6 +164,24 @@ class OrderedViewSetSpec : FreeSpec() {
                     callCount shouldBe 2
                 }
             }
+
+            "should handle this case discovered while debugging" - {
+                data class Dog(val name: String, val color: String, val breed: String)
+
+                val dogs = Shoebox<Dog>()
+                listOf(
+                        Dog(name = "hot dog", color = "tan", breed = "dachshund"),
+                        Dog(name = "toby", color = "tan", breed = "labrador")
+                ).forEach { dogs[it.name] = it }
+
+                val viewByColor = dogs.view("dogsByColor", Dog::color)
+                val tanDogs = viewByColor.orderedSet("tan", compareBy(Dog::color))
+                "dogs should be listed with correct test in correct order" {
+                    tanDogs.entries.size shouldBe 2
+                    tanDogs.entries[0] shouldBe Dog(name = "hot dog", color = "tan", breed = "dachshund")
+                    tanDogs.entries[1] shouldBe Dog(name = "toby", color = "tan", breed = "labrador")
+                }
+            }
         }
     }
 }
