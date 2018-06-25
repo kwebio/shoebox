@@ -1,8 +1,8 @@
 group 'io.kweb'
-version '0.2.14'
+version '0.2.15'
 
 buildscript {
-    ext.kotlin_version = '1.2.40'
+    ext.kotlin_version = '1.2.50'
     ext.dokka_version = '0.9.15'
 
     repositories {
@@ -48,6 +48,7 @@ dependencies {
     compile 'com.github.salomonbrys.kotson:kotson:2.3.0'
     compile 'com.google.guava:guava:18.0'
     compile 'net.incongru.watchservice:barbary-watchservice:1.0'
+    compile 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.1'
 
     testCompile 'io.kotlintest:kotlintest:2.0.1'
 }
