@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Created by ian on 3/14/17.
  */
+
 class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
 
     private val orderedList : MutableList<KeyValue<T>>
@@ -22,13 +23,17 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         additionHandle = view.onAdd(viewKey) { keyValue ->
             val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
             val insertionPoint: Int = when (binarySearchResult) {
-                is Exact -> {
-                    throw RuntimeException("Listener called for key/value already in list keyValue: $keyValue orderedList[${binarySearchResult.index}] = ${orderedList[binarySearchResult.index]}")
-                }
+                is Exact -> binarySearchResult.index
                 is Between -> binarySearchResult.highIndex
             }
             ol.add(insertionPoint, keyValue)
-            insertListeners.values.forEach { it(insertionPoint, keyValue) }
+            insertListeners.values.forEach {
+                try {
+                    it(insertionPoint, keyValue)
+                } catch (e: Exception) {
+                    e.printStackTrace(System.err)
+                }
+            }
         }
 
         removalHandle = view.onRemove(viewKey) { keyValue ->
@@ -53,18 +58,17 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
                     val newKeyValue = KeyValue(kv.key, newValue)
                     val insertPoint = orderedList.betterBinarySearch(newKeyValue, kvComparator)
                     val insertionIndex: Int = when (insertPoint) {
-                        is Exact -> throw RuntimeException("Object modified to same value as an existing object ($newValue)")
+                        is Exact -> insertPoint.index
                         is Between -> insertPoint.highIndex
                     }
                     insertListeners.values.forEach { it(insertionIndex, newKeyValue) }
 
                     val oldKeyValue = KeyValue(kv.key, oldValue)
                     val removePoint = orderedList.betterBinarySearch(oldKeyValue, kvComparator)
-                    val removalIndex = when (removePoint) {
-                        is Exact -> removePoint.index
-                        is Between -> throw RuntimeException("Object modified from an unknown value ($oldValue)")
+                    when (removePoint) {
+                        is Exact -> removeListeners.values.forEach { it(removePoint.index, oldKeyValue) }
                     }
-                    removeListeners.values.forEach { it(removalIndex, oldKeyValue) }
+
                 }
             })
         }

@@ -35,10 +35,22 @@ class View<T : Any>(val references: Shoebox<Reference>,
                     val nextViewKey = viewBy(nextKeyValue.value)
                     if (previousViewKey != nextViewKey) {
 
-                        removeListeners[previousViewKey]?.values?.forEach { it(KeyValue(nextKeyValue.key, previousValue)) }
+                        removeListeners[previousViewKey]?.values?.forEach {
+                            try {
+                                it(KeyValue(nextKeyValue.key, previousValue))
+                            } catch (e: Exception) {
+                                e.printStackTrace(System.err)
+                            }
+                        }
                         removeValue(previousViewKey, nextKeyValue.key)
 
-                        addListeners[nextViewKey]?.values?.forEach { it(nextKeyValue) }
+                        addListeners[nextViewKey]?.values?.forEach {
+                            try {
+                                it(nextKeyValue)
+                            } catch (e: Exception) {
+                                e.printStackTrace(System.err)
+                            }
+                        }
                         addValue(nextViewKey, nextKeyValue.key)
                     }
                 }
@@ -91,7 +103,7 @@ class View<T : Any>(val references: Shoebox<Reference>,
 
     fun onAdd(viewKey : String, listener : (KeyValue<T>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
-        addListeners.computeIfAbsent(viewKey, {ConcurrentHashMap()}).put(handle, listener)
+        addListeners.computeIfAbsent(viewKey) { ConcurrentHashMap() }.put(handle, listener)
         return handle
     }
 

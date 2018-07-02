@@ -1,12 +1,10 @@
 package io.kweb.shoebox
 
-import io.kweb.shoebox.data.Gender
-import io.kweb.shoebox.data.User
-import io.kweb.shoebox.stores.MemoryStore
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.matchers.*
 import io.kotlintest.specs.FreeSpec
 import io.kweb.shoebox.data.Gender.*
+import io.kweb.shoebox.data.User
+import io.kweb.shoebox.stores.MemoryStore
 
 /**
  * Created by ian on 3/14/17.
@@ -126,7 +124,7 @@ class OrderedViewSetSpec : FreeSpec() {
 
                 val maleViewSet = OrderedViewSet<User>(viewByGender, "MALE", compareBy(User::name))
 
-                maleViewSet.onInsert { p, kv ->
+                maleViewSet.onInsert { _, kv ->
 
                 }
 

@@ -39,7 +39,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
         Files.createDirectories(directory)
         if (Files.exists(lockFilePath)) {
             if (System.currentTimeMillis() - Files.getLastModifiedTime(lockFilePath).toMillis() < LOCK_STALE_TIME) {
-                throw RuntimeException("$directory locked by $lockFilePath")
+                throw RuntimeException("$directory locked by $lockFilePath, created ${System.currentTimeMillis() - Files.getLastModifiedTime(lockFilePath).toMillis()}ms ago.")
             } else {
                 Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
             }
@@ -61,6 +61,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
     override val entries: Iterable<KeyValue<T>> get() = Files.newDirectoryStream(directory)
             .mapNotNull {it.fileName.toString()}
             .filter {it != LOCK_FILENAME }
+            .filter {it.isNotBlank()}
             .map {
                 KeyValue(it, this[it]!!)
             }
@@ -72,6 +73,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
      * @return The value associated with the key, or null if no value is associated
      */
     override operator fun get(key: String): T? {
+        require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
         return load(key)
     }
 
@@ -81,6 +83,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
      * @param key The key associated with the value to be removed, similar to [MutableMap.remove]
      */
     override fun remove(key: String) : T? {
+        require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
         val cachedValue: T? = cache.getIfPresent(key)
         if (cachedValue != null) {
             cache.invalidate(key)
@@ -106,6 +109,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
      * @param value The new value
      */
     override operator fun set(key: String, value: T) : T? {
+        require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
         val previousValue = get(key)
         cache.put(key, value)
         if (value != previousValue) {
@@ -119,8 +123,12 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
     }
 
     private fun load(key: String): T? {
+        require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
         val filePath = directory.resolve(key)
         if (Files.exists(filePath)) {
+            if (Files.isDirectory(filePath)) {
+                throw IllegalStateException("File $filePath is a directory, not a file")
+            }
             val o = filePath.newBufferedReader().use {
                 gson.fromJson(it, kc.javaObjectType)
             }

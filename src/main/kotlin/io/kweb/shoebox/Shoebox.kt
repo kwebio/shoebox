@@ -52,7 +52,11 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
      * @return The value associated with the key, or null if no value is associated
      */
     operator fun get(key: String): T? {
-        return store.get(key)
+        try {
+            return store.get(key)
+        } catch (e: Exception) {
+            throw RuntimeException("Exception in call to get(\"$key\")", e)
+        }
     }
 
     /**
@@ -77,10 +81,22 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
     operator fun set(key: String, value: T) {
         val previousValue = store.set(key, value)
         if (previousValue == null) {
-            newListeners.values.forEach { l -> l(KeyValue(key, value), LOCAL) }
+            newListeners.values.forEach { l ->
+                try {
+                    l(KeyValue(key, value), LOCAL)
+                } catch (e: Exception) {
+                    e.printStackTrace(System.err)
+                }
+            }
         } else if (value != previousValue) {
             changeListeners.values.forEach { cl -> cl(previousValue, KeyValue(key, value), LOCAL) }
-            keySpecificChangeListeners[key]?.values?.forEach { l -> l(previousValue, value, LOCAL) }
+            keySpecificChangeListeners[key]?.values?.forEach { l ->
+                try {
+                    l(previousValue, value, LOCAL)
+                } catch (e: Exception) {
+                    e.printStackTrace(System.err)
+                }
+            }
         }
     }
 
