@@ -44,7 +44,9 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
                         removeListeners.values.forEach { it(binarySearchResult.index, keyValue) }
                         orderedList.removeAt(binarySearchResult.index)
                     }
-                    is Between -> throw RuntimeException("remove listener called for unknown value")
+                    is Between -> {
+                        throw RuntimeException("$keyValue not found in orderedList $orderedList")
+                    }
                 }
             } else {
                 // On very rare occasions the View callback doesn't supply the value that was removed, in this case

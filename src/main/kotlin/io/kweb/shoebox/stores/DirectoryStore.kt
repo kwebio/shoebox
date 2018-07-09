@@ -3,13 +3,13 @@ package io.kweb.shoebox.stores
 import com.fatboyindustrial.gsonjavatime.Converters
 import com.google.common.cache.*
 import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import io.kweb.shoebox.*
 import java.nio.file.*
 import java.nio.file.attribute.FileTime
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
-
-
 
 /**
  * Created by ian on 3/22/17.
@@ -22,7 +22,9 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
         const private val LOCK_FILENAME = "shoebox.lock"
         const private val LOCK_TOUCH_TIME_MS = 2000.toLong()
         const private val LOCK_STALE_TIME = LOCK_TOUCH_TIME_MS * 2
-        private val gson = Converters.registerAll(GsonBuilder()).create()
+        private val gson = Converters.registerAll(GsonBuilder()).let {
+            it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
+        }.create()
     }
 
     internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(

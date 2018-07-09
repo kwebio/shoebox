@@ -1,9 +1,11 @@
 package io.kweb.shoebox
 
+import com.google.gson.*
 import io.kweb.shoebox.BinarySearchResult.*
-import java.nio.file.Files
-import java.nio.file.OpenOption
-import java.nio.file.Path
+import java.lang.reflect.Type
+import java.nio.file.*
+import java.time.*
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
@@ -80,5 +82,43 @@ private fun toBinarySearchResult(result: Int): BinarySearchResult {
     } else {
         val insertionPoint = -result - 1
         Between(insertionPoint - 1, insertionPoint)
+    }
+}
+
+
+/**
+ * GSON serialiser/deserialiser for converting [Instant] objects.
+ */
+class DurationConverter : JsonSerializer<Duration>, JsonDeserializer<Duration> {
+
+    override fun serialize(src: Duration, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+        return JsonPrimitive(src.toMillis())
+    }
+
+    /**
+     * Gson invokes this call-back method during deserialization when it encounters a field of the
+     * specified type.
+     *
+     *
+     *
+     * In the implementation of this call-back method, you should consider invoking
+     * [JsonDeserializationContext.deserialize] method to create objects
+     * for any non-trivial field of the returned object. However, you should never invoke it on the
+     * the same type passing `json` since that will cause an infinite loop (Gson will call your
+     * call-back method again).
+     *
+     * @param json The Json data being deserialized
+     * @param typeOfT The type of the Object to deserialize to
+     * @return a deserialized object of the specified type typeOfT which is a subclass of `T`
+     * @throws JsonParseException if json is not in the expected format of `typeOfT`
+     */
+    @Throws(JsonParseException::class)
+    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): Duration {
+        return Duration.ofNanos(json.asLong)
+    }
+
+    companion object {
+        /** Formatter.  */
+        private val FORMATTER = DateTimeFormatter.ISO_INSTANT
     }
 }
