@@ -5,10 +5,12 @@ import com.google.common.cache.*
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import io.kweb.shoebox.*
+import java.net.URLDecoder
 import java.nio.file.*
 import java.nio.file.attribute.FileTime
-import java.time.Duration
+import java.time.*
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 import kotlin.reflect.KClass
 
 /**
@@ -20,16 +22,18 @@ inline fun <reified T : Any> DirectoryStore(directory : Path) = DirectoryStore(d
 class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) : Store<T> {
     companion object {
         const private val LOCK_FILENAME = "shoebox.lock"
-        const private val LOCK_TOUCH_TIME_MS = 2000.toLong()
+        const private val LOCK_TOUCH_TIME_MS = 100.toLong()
         const private val LOCK_STALE_TIME = LOCK_TOUCH_TIME_MS * 2
         private val gson = Converters.registerAll(GsonBuilder()).let {
             it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
         }.create()
     }
 
-    internal val cache: LoadingCache<String, T?> = CacheBuilder.newBuilder().build<String, T?>(
-            object : CacheLoader<String, T?>() {
-                override fun load(key: String): T? {
+    data class CachedValueWithTime<T : Any> (val value : T, val time : Instant)
+
+    internal val cache: LoadingCache<String, CachedValueWithTime<T>> = CacheBuilder.newBuilder().build(
+            object : CacheLoader<String, CachedValueWithTime<T>>() {
+                override fun load(key: String): CachedValueWithTime<T>? {
                     return this@DirectoryStore.load(key)
                 }
             }
@@ -65,7 +69,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
             .filter {it != LOCK_FILENAME }
             .filter {it.isNotBlank()}
             .map {
-                KeyValue(it, this[it]!!)
+                KeyValue(URLDecoder.decode(it, "UTF-8"), this[it]!!)
             }
 
     /**
@@ -76,7 +80,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
      */
     override operator fun get(key: String): T? {
         require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
-        return load(key)
+        return load(key)?.value
     }
 
     /**
@@ -86,18 +90,18 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
      */
     override fun remove(key: String) : T? {
         require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
-        val cachedValue: T? = cache.getIfPresent(key)
+        val cachedValue: T? = cache.getIfPresent(key)?.value
         if (cachedValue != null) {
             cache.invalidate(key)
         }
         val filePath = directory.resolve(key)
         if (Files.exists(filePath)) {
-            val oldValue = cachedValue ?: load(key)
-            if (oldValue != null) {
+            val oldValue = cachedValue ?: load(key)?.value
+            return if (oldValue != null) {
                 Files.delete(filePath)
-                return oldValue
+                oldValue
             } else {
-                return null
+                null
             }
         } else {
             return null
@@ -113,10 +117,10 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
     override operator fun set(key: String, value: T) : T? {
         require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
         val previousValue = get(key)
-        cache.put(key, value)
+        cache.put(key, CachedValueWithTime(value, Instant.now()))
         if (value != previousValue) {
             if (!directory.exists()) throw RuntimeException("Parent directory doesn't exist")
-            val filePath = directory.resolve(key)
+            val filePath = toPath(key)
             filePath.newBufferedWriter().use {
                 gson.toJson(value, kc.javaObjectType, it)
             }
@@ -124,24 +128,61 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
         return previousValue
     }
 
-    private fun load(key: String): T? {
-        require(key.isNotBlank()) {"key(\"$key\") must not be blank"}
-        val filePath = directory.resolve(key)
-        if (Files.exists(filePath)) {
+    private fun load(key: String): CachedValueWithTime<T>? {
+        val filePath = toPath(key)
+        cache.get(key).let { cached ->
+            if (cached != null && !cached.time.isAfter(Files.getLastModifiedTime(filePath).toInstant())) return cached
+        }
+        return if (Files.exists(filePath)) {
             if (Files.isDirectory(filePath)) {
                 throw IllegalStateException("File $filePath is a directory, not a file")
             }
             val o = filePath.newBufferedReader().use {
                 gson.fromJson(it, kc.javaObjectType)
             }
-            cache.put(key, o)
-            return o
+            val cachedValueWithTime = CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
+            cache.put(key, cachedValueWithTime)
+            cachedValueWithTime
         } else {
-            return null
+            null
         }
+    }
+
+    fun toPath(unsanitizedKey: String): Path {
+        require(unsanitizedKey.isNotBlank()) { "key(\"$unsanitizedKey\") must not be blank" }
+        val key = escapeStringAsFilename(unsanitizedKey)
+        val filePath = directory.resolve(key)
+        return filePath
     }
 
     protected fun finalize() {
         Files.delete(lockFilePath)
     }
+}
+
+private val PATTERN = Pattern.compile("[^A-Za-z0-9_\\-]")
+
+private val MAX_LENGTH = 127
+
+internal fun escapeStringAsFilename(`in`: String): String {
+
+    val sb = StringBuffer()
+
+    // Apply the regex.
+    val m = PATTERN.matcher(`in`)
+
+    while (m.find()) {
+
+        // Convert matched character to percent-encoded.
+        val replacement = "%" + Integer.toHexString(m.group()[0].toInt()).toUpperCase()
+
+        m.appendReplacement(sb, replacement)
+    }
+    m.appendTail(sb)
+
+    val encoded = sb.toString()
+
+    // Truncate the string.
+    val end = Math.min(encoded.length, MAX_LENGTH)
+    return encoded.substring(0, end)
 }
