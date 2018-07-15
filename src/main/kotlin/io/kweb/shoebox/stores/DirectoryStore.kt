@@ -2,6 +2,7 @@ package io.kweb.shoebox.stores
 
 import com.fatboyindustrial.gsonjavatime.Converters
 import com.google.common.cache.*
+import com.google.common.cache.CacheLoader.InvalidCacheLoadException
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import io.kweb.shoebox.*
@@ -34,7 +35,18 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
     internal val cache: LoadingCache<String, CachedValueWithTime<T>> = CacheBuilder.newBuilder().build(
             object : CacheLoader<String, CachedValueWithTime<T>>() {
                 override fun load(key: String): CachedValueWithTime<T>? {
-                    return this@DirectoryStore.load(key)
+                    val filePath = this@DirectoryStore.toPath(key)
+                    return if (Files.exists(filePath)) {
+                        if (Files.isDirectory(filePath)) {
+                            throw IllegalStateException("File $filePath is a directory, not a file")
+                        }
+                        val o = filePath.newBufferedReader().use {
+                            gson.fromJson(it, kc.javaObjectType)
+                        }
+                        CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
+                    } else {
+                        null
+                    }
                 }
             }
     )
@@ -94,7 +106,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
         if (cachedValue != null) {
             cache.invalidate(key)
         }
-        val filePath = directory.resolve(key)
+        val filePath = this.toPath(key)
         if (Files.exists(filePath)) {
             val oldValue = cachedValue ?: load(key)?.value
             return if (oldValue != null) {
@@ -130,19 +142,15 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
 
     private fun load(key: String): CachedValueWithTime<T>? {
         val filePath = toPath(key)
-        cache.get(key).let { cached ->
-            if (cached != null && !cached.time.isAfter(Files.getLastModifiedTime(filePath).toInstant())) return cached
-        }
-        return if (Files.exists(filePath)) {
-            if (Files.isDirectory(filePath)) {
-                throw IllegalStateException("File $filePath is a directory, not a file")
+        val cached = try {cache.get(key) } catch (e : InvalidCacheLoadException) { null }
+        return if (cached != null) {
+            val cacheIsOutOfDate = !cached.time.isAfter(Files.getLastModifiedTime(filePath).toInstant())
+            if (cacheIsOutOfDate) {
+                cache.invalidate(key)
+                cache.get(key)
+            } else {
+                cached
             }
-            val o = filePath.newBufferedReader().use {
-                gson.fromJson(it, kc.javaObjectType)
-            }
-            val cachedValueWithTime = CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
-            cache.put(key, cachedValueWithTime)
-            cachedValueWithTime
         } else {
             null
         }
