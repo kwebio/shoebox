@@ -1,7 +1,6 @@
 # ShoeBox
 
-[![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
- [![Build Status](https://travis-ci.org/kwebio/shoebox.svg?branch=master)](https://travis-ci.org/kwebio/shoebox)
+[![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)[![Build Status](https://travis-ci.org/kwebio/shoebox.svg?branch=master)](https://travis-ci.org/kwebio/shoebox)
 
 ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence that supports the 
 [observer pattern](https://en.wikipedia.org/wiki/Observer_pattern) so your code can be notified immediately when 
