@@ -1,9 +1,9 @@
 group 'io.kweb'
-version '0.2.18'
+version '0.2.19'
 
 buildscript {
-    ext.kotlin_version = '1.2.50'
-    ext.dokka_version = '0.9.15'
+    ext.kotlin_version = '1.2.51'
+    ext.dokka_version = '0.9.17'
 
     repositories {
         jcenter()
@@ -21,15 +21,17 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.1.10'
+        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.3.0'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$dokka_version"
-
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.20.0'
     }
+
 }
 
 apply plugin: 'kotlin'
 apply plugin: 'org.jetbrains.dokka'
 apply plugin: "info.solidsoft.pitest"
+apply plugin: "com.github.ben-manes.versions"
 
 repositories {
     mavenCentral()
@@ -45,12 +47,12 @@ repositories {
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile 'com.github.salomonbrys.kotson:kotson:2.3.0'
-    compile 'com.google.guava:guava:18.0'
+    compile 'com.github.salomonbrys.kotson:kotson:2.5.0'
+    compile 'com.google.guava:guava:25.1-jre'
     compile 'net.incongru.watchservice:barbary-watchservice:1.0'
     compile 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.1'
 
-    testCompile 'io.kotlintest:kotlintest:2.0.1'
+    testCompile 'io.kotlintest:kotlintest:2.0.7'
 }
 
 task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {

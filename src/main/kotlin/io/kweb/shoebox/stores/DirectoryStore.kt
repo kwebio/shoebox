@@ -22,9 +22,9 @@ inline fun <reified T : Any> DirectoryStore(directory : Path) = DirectoryStore(d
 
 class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) : Store<T> {
     companion object {
-        const private val LOCK_FILENAME = "shoebox.lock"
-        const private val LOCK_TOUCH_TIME_MS = 100.toLong()
-        const private val LOCK_STALE_TIME = LOCK_TOUCH_TIME_MS * 2
+        private const val LOCK_FILENAME = "shoebox.lock"
+        private val LOCK_TOUCH_TIME = Duration.ofMillis(100)
+        private val LOCK_STALE_TIME = LOCK_TOUCH_TIME.multipliedBy(20)
         private val gson = Converters.registerAll(GsonBuilder()).let {
             it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
         }.create()
@@ -56,7 +56,8 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
     init {
         Files.createDirectories(directory)
         if (Files.exists(lockFilePath)) {
-            if (System.currentTimeMillis() - Files.getLastModifiedTime(lockFilePath).toMillis() < LOCK_STALE_TIME) {
+            val durationSinceLock = Duration.between(Files.getLastModifiedTime(lockFilePath).toInstant(), Instant.now())
+            if (durationSinceLock < LOCK_STALE_TIME) {
                 throw RuntimeException("$directory locked by $lockFilePath, created ${System.currentTimeMillis() - Files.getLastModifiedTime(lockFilePath).toMillis()}ms ago.")
             } else {
                 Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
@@ -68,7 +69,7 @@ class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) 
         }
         scheduledExecutor.scheduleWithFixedDelay({
             Files.setLastModifiedTime(lockFilePath, FileTime.fromMillis(System.currentTimeMillis()))
-        }, LOCK_TOUCH_TIME_MS, LOCK_TOUCH_TIME_MS, TimeUnit.MILLISECONDS)
+        }, LOCK_TOUCH_TIME.toMillis(), LOCK_TOUCH_TIME.toMillis(), TimeUnit.MILLISECONDS)
     }
 
     /**

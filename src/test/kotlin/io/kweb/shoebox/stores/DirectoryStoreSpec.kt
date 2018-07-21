@@ -1,11 +1,8 @@
 package io.kweb.shoebox.stores
 
-import io.kweb.shoebox.ShoeboxSpec
-import io.kotlintest.matchers.gt
-import io.kotlintest.matchers.shouldBe
-import io.kotlintest.matchers.shouldEqual
-import io.kotlintest.matchers.shouldThrow
+import io.kotlintest.matchers.*
 import io.kotlintest.specs.FreeSpec
+import io.kweb.shoebox.ShoeboxSpec
 import io.kweb.shoebox.ShoeboxSpec.TestData
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
@@ -56,7 +53,7 @@ class DirectoryStoreSpec : FreeSpec() {
                 val pm = DirectoryStore<TestData>(dir)
                 pm["key1"] = object1
                 "should cache the item that was stored" {
-                    pm.cache.get("key1") shouldEqual object1
+                    pm.cache.get("key1").value shouldEqual object1
                 }
             }
             "when an item is replaced" - {
@@ -66,7 +63,7 @@ class DirectoryStoreSpec : FreeSpec() {
                 pm["key1"] = object2
 
                 "should have cached the replaced data" {
-                    pm.cache.get("key1") shouldEqual object2
+                    pm.cache.get("key1").value shouldEqual object2
                 }
                 "should retrieve the replaced data without the cache" {
                     pm.cache.invalidate("key1")
