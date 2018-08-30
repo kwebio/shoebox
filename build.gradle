@@ -1,8 +1,8 @@
 group 'io.kweb'
-version '0.2.19'
+version '0.2.20'
 
 buildscript {
-    ext.kotlin_version = '1.2.51'
+    ext.kotlin_version = '1.2.61'
     ext.dokka_version = '0.9.17'
 
     repositories {

@@ -16,10 +16,10 @@ class DirectoryStoreSpec : FreeSpec() {
             "locking" - {
                 val dir = Files.createTempDirectory("ss-")
                 val directoryStore = DirectoryStore<String>(dir)
-                "should create a lockfile" {
+                "should defaultGson a lockfile" {
                     Files.exists(dir.resolve("shoebox.lock")) shouldBe true
                 }
-                "should throw an exception if attempting to create a store for a directory that already has a store" {
+                "should throw an exception if attempting to defaultGson a store for a directory that already has a store" {
                     shouldThrow<RuntimeException> {
                         DirectoryStore<TestData>(dir)
                     }

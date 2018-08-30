@@ -3,7 +3,7 @@ package io.kweb.shoebox.stores
 import com.fatboyindustrial.gsonjavatime.Converters
 import com.google.common.cache.*
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException
-import com.google.gson.GsonBuilder
+import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import io.kweb.shoebox.*
 import java.net.URLDecoder
@@ -20,14 +20,15 @@ import kotlin.reflect.KClass
 
 inline fun <reified T : Any> DirectoryStore(directory : Path) = DirectoryStore(directory, T::class)
 
-class DirectoryStore<T : Any>(val directory : Path, private val kc : KClass<T>) : Store<T> {
+val defaultGson = Converters.registerAll(GsonBuilder()).let {
+    it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
+}.create()
+
+class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, val gson: Gson = defaultGson) : Store<T> {
     companion object {
         private const val LOCK_FILENAME = "shoebox.lock"
         private val LOCK_TOUCH_TIME = Duration.ofMillis(100)
         private val LOCK_STALE_TIME = LOCK_TOUCH_TIME.multipliedBy(20)
-        private val gson = Converters.registerAll(GsonBuilder()).let {
-            it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
-        }.create()
     }
 
     data class CachedValueWithTime<T : Any> (val value : T, val time : Instant)

@@ -102,7 +102,7 @@ class DurationConverter : JsonSerializer<Duration>, JsonDeserializer<Duration> {
      *
      *
      * In the implementation of this call-back method, you should consider invoking
-     * [JsonDeserializationContext.deserialize] method to create objects
+     * [JsonDeserializationContext.deserialize] method to defaultGson objects
      * for any non-trivial field of the returned object. However, you should never invoke it on the
      * the same type passing `json` since that will cause an infinite loop (Gson will call your
      * call-back method again).
