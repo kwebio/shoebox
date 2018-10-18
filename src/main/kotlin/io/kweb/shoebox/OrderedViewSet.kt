@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Created by ian on 3/14/17.
  */
 
-class OrderedViewSet<T : Any>(private val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
+class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
 
     private val orderedList : MutableList<KeyValue<T>>
     private val modificationHandlers = ConcurrentHashMap<String, Long>()
