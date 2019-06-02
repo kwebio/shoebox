@@ -7,13 +7,12 @@ import java.util.concurrent.ConcurrentHashMap
  * Created by ian on 3/14/17.
  */
 
-class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, comparator: Comparator<T>) : AbstractOrderedViewSet<T>(comparator) {
+class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
 
+    private val orderedList : MutableList<KeyValue<T>>
     private val modificationHandlers = ConcurrentHashMap<String, Long>()
     private val additionHandle: Long
     private val removalHandle: Long
-
-    override lateinit var orderedList: MutableList<KeyValue<T>>
 
     init {
         val ol = ArrayList<KeyValue<T>>()
@@ -75,6 +74,33 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, comparat
                 }
             })
         }
+    }
+
+    private val insertListeners = ConcurrentHashMap<Long, (Int, KeyValue<T>) -> Unit>()
+    private val removeListeners = ConcurrentHashMap<Long, (Int, KeyValue<T>) -> Unit>()
+
+    val entries : List<T> get() = keyValueEntries.map(KeyValue<T>::value)
+
+    val keyValueEntries : List<KeyValue<T>> = orderedList
+
+    fun onInsert(listener : (Int, KeyValue<T>) -> Unit) : Long {
+        val handle = listenerHandleSource.incrementAndGet()
+        insertListeners.put(handle, listener)
+        return handle
+    }
+
+    fun deleteInsertListener(handle : Long) {
+        insertListeners.remove(handle)
+    }
+
+    fun onRemove(listener : (Int, KeyValue<T>) -> Unit) : Long {
+        val handle = listenerHandleSource.incrementAndGet()
+        removeListeners.put(handle, listener)
+        return handle
+    }
+
+    fun deleteRemoveListener(handle : Long) {
+        removeListeners.remove(handle)
     }
 
     protected fun finalize() {

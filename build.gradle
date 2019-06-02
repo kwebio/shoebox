@@ -63,19 +63,20 @@ task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
     samples = ["src/main/kotlin/com/github/sanity/shoebox/samples/samples.kt"]
     includes = ['packages.md']
 }
-*/
+
 task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
-
+*/
 pitest {
     targetClasses = ['com.github.sanity.shoebox.*']  //by default "${project.group}.*"
     threads = 8
     outputFormats = ['HTML']
     jvmArgs = ['-Xmx1024m']
 }
-
+/*
 artifacts {
     archives javadocJar
 }
+ */
