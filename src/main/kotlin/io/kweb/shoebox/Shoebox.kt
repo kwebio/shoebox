@@ -9,12 +9,12 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 
- /*
- * TODO: 1) Add a lockfile mechanism to prevent multiple JVMs or threads from
- * TODO:    using the same directory
- * TODO: 2) Handle changes that occur to the filesystem which aren't initiated here
- * TODO:    (then remove the previous lockfile mechanism)
- */
+/*
+* TODO: 1) Add a lockfile mechanism to prevent multiple JVMs or threads from
+* TODO:    using the same directory
+* TODO: 2) Handle changes that occur to the filesystem which aren't initiated here
+* TODO:    (then remove the previous lockfile mechanism)
+*/
 
 /**
  * Create a [Shoebox], use this in preference to the Shoebox constructor to avoid having to provide a `KClass`
@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
 inline fun <reified T : Any> Shoebox(store : Store<T>) = Shoebox(store, T::class)
 inline fun <reified T : Any> Shoebox(dir : Path) = Shoebox(DirectoryStore(dir), T::class)
 inline fun <reified T : Any> Shoebox() = Shoebox(MemoryStore(), T::class)
-
+inline fun <reified T : Any> Shoebox(name: String) = Shoebox(LmdbStore(name), T::class)
 
 /**
  * Can persistently store and retrieve objects, and notify listeners of changes to those objects
@@ -139,13 +139,13 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
     fun deleteRemoveListener(handle : Long) {
         removeListeners.remove(handle)
     }
-    
+
     fun onChange(listener: (T, KeyValue<T>, Source) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         changeListeners.put(handle, listener)
         return handle
     }
-    
+
     fun onChange(key: String, listener: (T, T, Source) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
         keySpecificChangeListeners.computeIfAbsent(key, { ConcurrentHashMap() }).put(handle, listener)
@@ -170,6 +170,7 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
             is MemoryStore<T> -> MemoryStore<Reference>()
             is DirectoryStore<T> ->
                 DirectoryStore<Reference>(store.directory.parent.resolve("${store.directory.fileName}-$name-view"))
+            is LmdbStore<T> -> LmdbStore<Reference>("${store.name}-$name-view")
             else -> throw RuntimeException("Shoebox doesn't currently support creating a view for store type ${store::class.simpleName}")
         }
         return View<T>(Shoebox(store), this, verify, by)
