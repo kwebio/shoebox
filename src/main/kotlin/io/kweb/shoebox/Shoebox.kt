@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
 inline fun <reified T : Any> Shoebox(store : Store<T>) = Shoebox(store, T::class)
 inline fun <reified T : Any> Shoebox(dir : Path) = Shoebox(DirectoryStore(dir), T::class)
 inline fun <reified T : Any> Shoebox() = Shoebox(MemoryStore(), T::class)
-inline fun <reified T : Any> Shoebox(name: String) = Shoebox(LmdbStore(name), T::class)
+inline fun <reified T : Any> LmdbShoebox(name: String) = Shoebox(LmdbStore(name), T::class)
 
 /**
  * Can persistently store and retrieve objects, and notify listeners of changes to those objects
