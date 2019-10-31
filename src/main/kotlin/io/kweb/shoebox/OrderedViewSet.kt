@@ -2,6 +2,7 @@ package io.kweb.shoebox
 
 import io.kweb.shoebox.BinarySearchResult.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Created by ian on 3/14/17.
@@ -9,13 +10,13 @@ import java.util.concurrent.ConcurrentHashMap
 
 class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comparator: Comparator<T>) {
 
-    private val orderedList : MutableList<KeyValue<T>>
+    private val orderedList : CopyOnWriteArrayList<KeyValue<T>>
     private val modificationHandlers = ConcurrentHashMap<String, Long>()
     private val additionHandle: Long
     private val removalHandle: Long
 
     init {
-        val ol = ArrayList<KeyValue<T>>()
+        val ol = CopyOnWriteArrayList<KeyValue<T>>()
         val kvComparator : Comparator<KeyValue<T>> = Comparator<KeyValue<T>> { o1, o2 -> comparator.compare(o1.value, o2.value) }.thenBy(KeyValue<T>::key)
         ol.addAll(view.getKeyValues(viewKey))
         ol.sortWith(kvComparator)

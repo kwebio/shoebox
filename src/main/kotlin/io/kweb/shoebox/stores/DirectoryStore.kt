@@ -82,8 +82,13 @@ class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, va
             .mapNotNull {it.fileName.toString()}
             .filter {it != LOCK_FILENAME }
             .filter {it.isNotBlank()}
-            .map {
-                KeyValue(URLDecoder.decode(it, "UTF-8"), this[it]!!)
+            .mapNotNull {
+                val v = this[it]
+                if (v != null) {
+                    KeyValue(URLDecoder.decode(it, "UTF-8"), this[it]!!)
+                } else {
+                    null
+                }
             }
 
     /**
