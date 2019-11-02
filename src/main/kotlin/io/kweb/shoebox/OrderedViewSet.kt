@@ -22,8 +22,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         ol.sortWith(kvComparator)
         orderedList = ol
         additionHandle = view.onAdd(viewKey) { keyValue ->
-            val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)
-            val insertionPoint: Int = when (binarySearchResult) {
+            val insertionPoint: Int = when (val binarySearchResult = orderedList.betterBinarySearch(keyValue, kvComparator)) {
                 is Exact -> binarySearchResult.index
                 is Between -> binarySearchResult.highIndex
             }
@@ -39,8 +38,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
 
         removalHandle = view.onRemove(viewKey) { keyValue ->
             if (keyValue.value != null) {
-                val binarySearchResult = orderedList.betterBinarySearch(keyValue as KeyValue<T>, kvComparator)
-                when (binarySearchResult) {
+                when (val binarySearchResult = orderedList.betterBinarySearch(keyValue as KeyValue<T>, kvComparator)) {
                     is Exact -> {
                         removeListeners.values.forEach { it(binarySearchResult.index, keyValue) }
                         orderedList.removeAt(binarySearchResult.index)
@@ -56,29 +54,31 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
         }
 
         ol.forEach { kv ->
-            modificationHandlers.put(kv.key, view.viewOf.onChange(kv.key) {oldValue, newValue, _ ->
+            modificationHandlers[kv.key] = view.viewOf.onChange(kv.key) { oldValue, newValue, _ ->
                 if (comparator.compare(oldValue, newValue) != 0) {
+                    for (modifyListener in modifyListeners.values) {
+                        modifyListener.invoke(oldValue, newValue)
+                    }
                     val newKeyValue = KeyValue(kv.key, newValue)
-                    val insertPoint = orderedList.betterBinarySearch(newKeyValue, kvComparator)
-                    val insertionIndex: Int = when (insertPoint) {
+                    val insertionIndex: Int = when (val insertPoint = orderedList.betterBinarySearch(newKeyValue, kvComparator)) {
                         is Exact -> insertPoint.index
                         is Between -> insertPoint.highIndex
                     }
                     insertListeners.values.forEach { it(insertionIndex, newKeyValue) }
 
                     val oldKeyValue = KeyValue(kv.key, oldValue)
-                    val removePoint = orderedList.betterBinarySearch(oldKeyValue, kvComparator)
-                    when (removePoint) {
+                    when (val removePoint = orderedList.betterBinarySearch(oldKeyValue, kvComparator)) {
                         is Exact -> removeListeners.values.forEach { it(removePoint.index, oldKeyValue) }
                     }
 
                 }
-            })
+            }
         }
     }
 
     private val insertListeners = ConcurrentHashMap<Long, (Int, KeyValue<T>) -> Unit>()
     private val removeListeners = ConcurrentHashMap<Long, (Int, KeyValue<T>) -> Unit>()
+    private val modifyListeners = ConcurrentHashMap<Long, (old : T, new : T) -> Unit>()
 
     val entries : List<T> get() = keyValueEntries.map(KeyValue<T>::value)
 
@@ -86,7 +86,7 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
 
     fun onInsert(listener : (Int, KeyValue<T>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
-        insertListeners.put(handle, listener)
+        insertListeners[handle] = listener
         return handle
     }
 
@@ -96,8 +96,18 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
 
     fun onRemove(listener : (Int, KeyValue<T>) -> Unit) : Long {
         val handle = listenerHandleSource.incrementAndGet()
-        removeListeners.put(handle, listener)
+        removeListeners[handle] = listener
         return handle
+    }
+
+    fun onModify(listener : (old : T, new : T) -> Unit) : Long {
+        val handle = listenerHandleSource.incrementAndGet()
+        modifyListeners[handle] = listener
+        return handle
+    }
+
+    fun deleteModifyListener(handle : Long) {
+        modifyListeners.remove(handle)
     }
 
     fun deleteRemoveListener(handle : Long) {
@@ -107,6 +117,6 @@ class OrderedViewSet<T : Any>(val view : View<T>, val viewKey : String, val comp
     protected fun finalize() {
         view.deleteAddListener(viewKey, additionHandle)
         view.deleteRemoveListener(viewKey, removalHandle)
-        modificationHandlers.forEach { key, handler -> view.viewOf.deleteChangeListener(key, handler) }
+        modificationHandlers.forEach { (key, handler) -> view.viewOf.deleteChangeListener(key, handler) }
     }
 }
