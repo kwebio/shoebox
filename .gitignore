@@ -83,3 +83,9 @@ fabric.properties
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+src/main/java/
+src/main/kotlin/com/
+src/main/resources/
+src/test/java/
+src/test/kotlin/com/
+src/test/resources/
