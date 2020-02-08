@@ -6,6 +6,10 @@ import com.google.common.cache.CacheLoader.InvalidCacheLoadException
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
 import io.kweb.shoebox.*
+import kotlinx.serialization.ImplicitReflectionSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonConfiguration
+import kotlinx.serialization.serializer
 import java.net.URLDecoder
 import java.nio.file.*
 import java.nio.file.attribute.FileTime
@@ -20,11 +24,7 @@ import kotlin.reflect.KClass
 
 inline fun <reified T : Any> DirectoryStore(directory : Path) = DirectoryStore(directory, T::class)
 
-val defaultGson = Converters.registerAll(GsonBuilder()).let {
-    it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
-}.create()
-
-class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, val gson: Gson = defaultGson) : Store<T> {
+class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, val json: Json = Json(JsonConfiguration.Default)) : Store<T> {
     companion object {
         private const val LOCK_FILENAME = "shoebox.lock"
         private val LOCK_TOUCH_TIME = Duration.ofMillis(100)
@@ -33,6 +33,7 @@ class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, va
 
     data class CachedValueWithTime<T : Any> (val value : T, val time : Instant)
 
+    @ImplicitReflectionSerializer
     internal val cache: LoadingCache<String, CachedValueWithTime<T>> = CacheBuilder.newBuilder().build(
             object : CacheLoader<String, CachedValueWithTime<T>>() {
                 override fun load(key: String): CachedValueWithTime<T>? {
@@ -42,7 +43,8 @@ class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, va
                             throw IllegalStateException("File $filePath is a directory, not a file")
                         }
                         val o = filePath.newBufferedReader().use {
-                            gson.fromJson(it, kc.javaObjectType)
+                            json.parse(kc.serializer(), it.readText())
+
                         }
                         CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
                     } else {

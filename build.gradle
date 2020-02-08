@@ -41,18 +41,17 @@ repositories {
         url "http://dl.bintray.com/cy6ergn0m/maven"
     }
     maven { url 'https://jitpack.io' }
-    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    jcenter()
 
 }
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.14.0" // JVM dependency
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
-    compile 'com.github.salomonbrys.kotson:kotson:2.5.0'
     compile 'com.google.guava:guava:27.1-jre'
     compile 'net.incongru.watchservice:barbary-watchservice:1.0'
-    compile 'com.fatboyindustrial.gson-javatime-serialisers:gson-javatime-serialisers:1.1.1'
     implementation 'org.lmdbjava:lmdbjava:0.7.0'
 
     testCompile 'io.kotlintest:kotlintest:2.0.7'
