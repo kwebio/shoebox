@@ -1,4 +1,4 @@
-package io.kweb.shoebox.stores
+package kweb.shoebox.stores
 
 import io.kweb.shoebox.KeyValue
 import io.kweb.shoebox.Store

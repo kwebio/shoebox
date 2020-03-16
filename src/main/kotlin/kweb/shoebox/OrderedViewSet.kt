@@ -1,8 +1,7 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
-import io.kweb.shoebox.BinarySearchResult.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
+import kweb.shoebox.BinarySearchResult.*
+import java.util.concurrent.*
 
 /**
  * Created by ian on 3/14/17.

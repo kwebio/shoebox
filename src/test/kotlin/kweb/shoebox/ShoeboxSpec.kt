@@ -1,4 +1,4 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
 import io.kweb.shoebox.stores.MemoryStore
 import io.kotlintest.matchers.shouldBe

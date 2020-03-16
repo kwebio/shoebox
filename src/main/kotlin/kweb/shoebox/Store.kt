@@ -1,4 +1,4 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
 /**
  * Created by ian on 3/22/17.

@@ -1,4 +1,4 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
 import io.kweb.shoebox.Source.LOCAL
 import io.kweb.shoebox.View.*

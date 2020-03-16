@@ -1,4 +1,4 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
 import com.google.gson.*
 import io.kweb.shoebox.BinarySearchResult.*

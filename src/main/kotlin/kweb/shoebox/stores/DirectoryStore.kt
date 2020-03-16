@@ -1,4 +1,4 @@
-package io.kweb.shoebox.stores
+package kweb.shoebox.stores
 
 import com.fatboyindustrial.gsonjavatime.Converters
 import com.google.common.cache.*

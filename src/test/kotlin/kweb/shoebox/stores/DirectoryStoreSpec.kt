@@ -1,4 +1,4 @@
-package io.kweb.shoebox.stores
+package kweb.shoebox.stores
 
 import io.kotlintest.matchers.*
 import io.kotlintest.specs.FreeSpec

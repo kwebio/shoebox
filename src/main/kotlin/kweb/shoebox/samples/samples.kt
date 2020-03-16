@@ -1,4 +1,4 @@
-package io.kweb.shoebox.samples
+package kweb.shoebox.samples
 
 import io.kweb.shoebox.Shoebox
 import io.kweb.shoebox.View

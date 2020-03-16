@@ -1,4 +1,4 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
 import io.kweb.shoebox.data.Gender.FEMALE
 import io.kweb.shoebox.data.Gender.MALE

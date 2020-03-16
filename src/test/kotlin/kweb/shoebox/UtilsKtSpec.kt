@@ -1,4 +1,4 @@
-package io.kweb.shoebox
+package kweb.shoebox
 
 import io.kotlintest.specs.FreeSpec
 import java.nio.file.Files
