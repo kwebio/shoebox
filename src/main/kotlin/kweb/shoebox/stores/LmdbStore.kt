@@ -3,7 +3,7 @@ package kweb.shoebox.stores
 import com.fatboyindustrial.gsonjavatime.Converters
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
-import io.kweb.shoebox.*
+import kweb.shoebox.*
 import java.nio.file.*
 import java.time.*
 import kotlin.reflect.KClass

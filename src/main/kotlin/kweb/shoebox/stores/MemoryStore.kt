@@ -1,7 +1,7 @@
 package kweb.shoebox.stores
 
-import io.kweb.shoebox.KeyValue
-import io.kweb.shoebox.Store
+import kweb.shoebox.KeyValue
+import kweb.shoebox.Store
 import java.util.concurrent.ConcurrentHashMap
 
 /**

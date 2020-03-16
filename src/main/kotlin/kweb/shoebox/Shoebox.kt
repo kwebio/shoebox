@@ -1,9 +1,9 @@
 package kweb.shoebox
 
-import io.kweb.shoebox.Source.LOCAL
-import io.kweb.shoebox.View.*
-import io.kweb.shoebox.View.VerifyBehavior.BLOCKING_VERIFY
-import io.kweb.shoebox.stores.*
+import kweb.shoebox.Source.LOCAL
+import kweb.shoebox.View.*
+import kweb.shoebox.View.VerifyBehavior.BLOCKING_VERIFY
+import kweb.shoebox.stores.*
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass

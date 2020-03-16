@@ -5,7 +5,7 @@ import com.google.common.cache.*
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException
 import com.google.gson.*
 import com.google.gson.reflect.TypeToken
-import io.kweb.shoebox.*
+import kweb.shoebox.*
 import java.net.URLDecoder
 import java.nio.file.*
 import java.nio.file.attribute.FileTime

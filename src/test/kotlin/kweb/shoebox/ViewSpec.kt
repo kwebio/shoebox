@@ -1,14 +1,10 @@
 package kweb.shoebox
 
-import io.kweb.shoebox.data.Gender.FEMALE
-import io.kweb.shoebox.data.Gender.MALE
-import io.kweb.shoebox.data.User
-import io.kweb.shoebox.stores.MemoryStore
-import io.kotlintest.matchers.beEmpty
-import io.kotlintest.matchers.should
-import io.kotlintest.matchers.shouldEqual
+import io.kotlintest.matchers.*
 import io.kotlintest.specs.FreeSpec
-import java.lang.AssertionError
+import kweb.shoebox.data.Gender.*
+import kweb.shoebox.data.User
+import kweb.shoebox.stores.MemoryStore
 import java.util.concurrent.atomic.AtomicInteger
 
 /**

@@ -1,7 +1,7 @@
 package kweb.shoebox
 
-import io.kweb.shoebox.Source.LOCAL
-import io.kweb.shoebox.View.VerifyBehavior.*
+import kweb.shoebox.Source.LOCAL
+import kweb.shoebox.View.VerifyBehavior.*
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread

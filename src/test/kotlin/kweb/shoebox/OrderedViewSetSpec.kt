@@ -2,9 +2,9 @@ package kweb.shoebox
 
 import io.kotlintest.matchers.*
 import io.kotlintest.specs.FreeSpec
-import io.kweb.shoebox.data.Gender.*
-import io.kweb.shoebox.data.User
-import io.kweb.shoebox.stores.MemoryStore
+import kweb.shoebox.data.Gender.*
+import kweb.shoebox.data.User
+import kweb.shoebox.stores.MemoryStore
 
 /**
  * Created by ian on 3/14/17.

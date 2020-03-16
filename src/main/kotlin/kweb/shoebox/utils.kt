@@ -1,7 +1,7 @@
 package kweb.shoebox
 
 import com.google.gson.*
-import io.kweb.shoebox.BinarySearchResult.*
+import kweb.shoebox.BinarySearchResult.*
 import java.lang.reflect.Type
 import java.nio.file.*
 import java.time.*

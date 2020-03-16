@@ -1,7 +1,7 @@
 package kweb.shoebox.samples
 
-import io.kweb.shoebox.Shoebox
-import io.kweb.shoebox.View
+import kweb.shoebox.Shoebox
+import kweb.shoebox.View
 import java.nio.file.Files
 
 /**

@@ -1,10 +1,10 @@
 package kweb.shoebox
 
-import io.kweb.shoebox.stores.MemoryStore
+import kweb.shoebox.stores.MemoryStore
 import io.kotlintest.matchers.shouldBe
 import io.kotlintest.matchers.shouldEqual
 import io.kotlintest.specs.FreeSpec
-import io.kweb.shoebox.Source.LOCAL
+import kweb.shoebox.Source.LOCAL
 import java.util.concurrent.atomic.AtomicInteger
 
 /**

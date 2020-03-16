@@ -2,8 +2,8 @@ package kweb.shoebox.stores
 
 import io.kotlintest.matchers.*
 import io.kotlintest.specs.FreeSpec
-import io.kweb.shoebox.ShoeboxSpec
-import io.kweb.shoebox.ShoeboxSpec.TestData
+import kweb.shoebox.ShoeboxSpec
+import kweb.shoebox.ShoeboxSpec.TestData
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
 
