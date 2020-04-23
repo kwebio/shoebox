@@ -9,7 +9,7 @@ import java.nio.file.Files
  */
 
 
-fun `basic usage sample`() {
+fun basic_usage_sample() {
     val dir = Files.createTempDirectory("sb-")
     val userStore = Shoebox<User>(dir.resolve("users"))
     val usersByEmail = View(Shoebox(dir.resolve("usersByEmail")), userStore, viewBy = User::email)
@@ -23,12 +23,12 @@ fun `basic usage sample`() {
     println(usersByGender["male"])          // [User(name=Ian Clarke, gender=male, email=ian@blah.com),
                                             // User(name=Fred Smith, gender=male, email=fred@blah.com)]
     // note: view["xx]" returns a set of values
-    usersByGender.onAdd("male", {kv ->
+    usersByGender.onAdd("male") { kv ->
         println("${kv.key} became male")
-    })
-    usersByGender.onRemove("male", {kv ->
+    }
+    usersByGender.onRemove("male") { kv ->
         println("${kv.key} ceased to be male")
-    })
+    }
 
     userStore["fred"] = userStore["fred"]!!.copy(gender = "female") // Prints "fred ceased to be male"
 }
