@@ -1,7 +1,9 @@
 package kweb.shoebox
 
+import kotlinx.serialization.Serializable
 import kweb.shoebox.Source.LOCAL
-import kweb.shoebox.View.VerifyBehavior.*
+import kweb.shoebox.View.VerifyBehavior.ASYNC_VERIFY
+import kweb.shoebox.View.VerifyBehavior.BLOCKING_VERIFY
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.thread
@@ -150,6 +152,7 @@ class View<T : Any>(val references: Shoebox<Reference>,
         BLOCKING_VERIFY, ASYNC_VERIFY
     }
 
+    @Serializable
     data class Reference(val keys: Set<String>) {
         constructor() : this(Collections.emptySet())
 

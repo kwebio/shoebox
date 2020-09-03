@@ -1,12 +1,15 @@
 package kweb.shoebox
 
+import kotlinx.serialization.KSerializer
 import kweb.shoebox.Source.LOCAL
-import kweb.shoebox.View.*
+import kweb.shoebox.View.Reference
+import kweb.shoebox.View.VerifyBehavior
 import kweb.shoebox.View.VerifyBehavior.BLOCKING_VERIFY
-import kweb.shoebox.stores.*
+import kweb.shoebox.stores.DirectoryStore
+import kweb.shoebox.stores.LmdbStore
+import kweb.shoebox.stores.MemoryStore
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.reflect.KClass
 
 
 /*
@@ -16,19 +19,7 @@ import kotlin.reflect.KClass
 * TODO:    (then remove the previous lockfile mechanism)
 */
 
-/**
- * Create a [Shoebox], use this in preference to the Shoebox constructor to avoid having to provide a `KClass`
- *
- * @param T The type of the objects to store, these must be serializable with [Gson](https://github.com/google/gson),
- *
- * @param directory The path to a directory in which data will be stored, will be created if it doesn't already exist
- *
- * @sample com.github.sanity.shoebox.samples.basic usage sample
- **/
-inline fun <reified T : Any> Shoebox(store : Store<T>) = Shoebox(store, T::class)
-inline fun <reified T : Any> Shoebox(dir : Path) = Shoebox(DirectoryStore(dir), T::class)
-inline fun <reified T : Any> Shoebox() = Shoebox(MemoryStore(), T::class)
-inline fun <reified T : Any> LmdbShoebox(name: String) = Shoebox(LmdbStore(name), T::class)
+fun <T : Any> shoebox(dir : Path, kSerializer: KSerializer<T>) = Shoebox(DirectoryStore(dir, kSerializer))
 
 /**
  * Can persistently store and retrieve objects, and notify listeners of changes to those objects
@@ -38,7 +29,9 @@ inline fun <reified T : Any> LmdbShoebox(name: String) = Shoebox(LmdbStore(name)
  * @param directory The path to a directory in which data will be stored, will be created if it doesn't already exist
  * @param kc The KClass associated with T.  To avoid having to provide this use `Shoebox<T>(directory)`
  */
-class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
+class Shoebox<T : Any>(val store: Store<T>) {
+
+    constructor() : this(MemoryStore())
 
     private val keySpecificChangeListeners = ConcurrentHashMap<String, ConcurrentHashMap<Long, (T, T, Source) -> Unit>>()
     private val newListeners = ConcurrentHashMap<Long, (KeyValue<T>, Source) -> Unit>()
@@ -169,8 +162,8 @@ class Shoebox<T : Any>(val store: Store<T>, private val kc: KClass<T>) {
         val store = when (store) {
             is MemoryStore<T> -> MemoryStore<Reference>()
             is DirectoryStore<T> ->
-                DirectoryStore<Reference>(store.directory.parent.resolve("${store.directory.fileName}-$name-view"))
-            is LmdbStore<T> -> LmdbStore<Reference>("${store.name}-$name-view")
+                DirectoryStore(store.directory.parent.resolve("${store.directory.fileName}-$name-view"), Reference.serializer())
+            is LmdbStore<T> -> LmdbStore("${store.name}-$name-view", Reference.serializer())
             else -> throw RuntimeException("Shoebox doesn't currently support creating a view for store type ${store::class.simpleName}")
         }
         return View<T>(Shoebox(store), this, verify, by)

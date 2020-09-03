@@ -1,7 +1,9 @@
 package kweb.shoebox
 
-import kweb.shoebox.BinarySearchResult.*
-import java.util.concurrent.*
+import kweb.shoebox.BinarySearchResult.Between
+import kweb.shoebox.BinarySearchResult.Exact
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 /**
  * Created by ian on 3/14/17.

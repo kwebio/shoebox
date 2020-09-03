@@ -1,30 +1,26 @@
 package kweb.shoebox.stores
 
-import com.fatboyindustrial.gsonjavatime.Converters
-import com.google.common.cache.*
+import com.google.common.cache.CacheBuilder
+import com.google.common.cache.CacheLoader
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException
-import com.google.gson.*
-import com.google.gson.reflect.TypeToken
+import com.google.common.cache.LoadingCache
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import kweb.shoebox.*
 import java.net.URLDecoder
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.FileTime
-import java.time.*
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-import kotlin.reflect.KClass
 
 /**
  * Created by ian on 3/22/17.
  */
 
-inline fun <reified T : Any> DirectoryStore(directory : Path) = DirectoryStore(directory, T::class)
-
-val defaultGson = Converters.registerAll(GsonBuilder()).let {
-    it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
-}.create()
-
-class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, val gson: Gson = defaultGson) : Store<T> {
+class DirectoryStore<T : Any>(val directory: Path, private val kSerializer: KSerializer<T>) : Store<T> {
     companion object {
         private const val LOCK_FILENAME = "shoebox.lock"
         private val LOCK_TOUCH_TIME = Duration.ofMillis(100)
@@ -42,7 +38,7 @@ class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, va
                             throw IllegalStateException("File $filePath is a directory, not a file")
                         }
                         val o = filePath.newBufferedReader().use {
-                            gson.fromJson(it, kc.javaObjectType)
+                            Json.decodeFromString(kSerializer, it.readText())
                         }
                         CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
                     } else {
@@ -141,7 +137,7 @@ class DirectoryStore<T : Any>(val directory: Path, private val kc: KClass<T>, va
             if (!directory.exists()) throw RuntimeException("Parent directory doesn't exist")
             val filePath = toPath(key)
             filePath.newBufferedWriter().use {
-                gson.toJson(value, kc.javaObjectType, it)
+                it.write(Json.encodeToString(kSerializer, value))
             }
         }
         return previousValue

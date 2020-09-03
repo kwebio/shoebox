@@ -1,7 +1,7 @@
 package kweb.shoebox.samples
 
-import kweb.shoebox.Shoebox
-import kweb.shoebox.View
+import kotlinx.serialization.Serializable
+import kweb.shoebox.shoebox
 import java.nio.file.Files
 
 /**
@@ -11,9 +11,9 @@ import java.nio.file.Files
 
 fun basic_usage_sample() {
     val dir = Files.createTempDirectory("sb-")
-    val userStore = Shoebox<User>(dir.resolve("users"))
-    val usersByEmail = View(Shoebox(dir.resolve("usersByEmail")), userStore, viewBy = User::email)
-    val usersByGender = View(Shoebox(dir.resolve("usersByGender")), userStore, viewBy = User::gender)
+    val userStore = shoebox(dir.resolve("users"), User.serializer())
+    val usersByEmail = userStore.view("usersByEmail", User::email)
+    val usersByGender = userStore.view("usersByGender", User::gender)
 
     userStore["ian"] = User("Ian Clarke", "male", "ian@blah.com")
     userStore["fred"] = User("Fred Smith", "male", "fred@blah.com")
@@ -33,4 +33,4 @@ fun basic_usage_sample() {
     userStore["fred"] = userStore["fred"]!!.copy(gender = "female") // Prints "fred ceased to be male"
 }
 
-data class User(val name : String, val gender : String, val email : String)
+@Serializable data class User(val name : String, val gender : String, val email : String)
