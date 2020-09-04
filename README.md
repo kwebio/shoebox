@@ -43,6 +43,8 @@ Shoebox can be added easily to your Maven or Gradle project through Jitpack:
 
 [![Release](https://jitpack.io/v/kwebio/shoebox.svg)](https://jitpack.io/#kwebio/shoebox)
 
+As of release 0.4.0 Shoebox uses Kotlin Serialization, so you will also need to add [the serialization plugin](https://github.com/Kotlin/kotlinx.serialization#gradle) to your project.
+
 ### Usage Example
 ```kotlin
 fun main() {
