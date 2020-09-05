@@ -13,7 +13,7 @@ import org.mapdb.Serializer
  * Created by ian on 3/22/17.
  */
 @ExperimentalSerializationApi
-class MapDBStore<T : Any>(val db: DB, val name: String, val serializer: KSerializer<T>) : Store<T> {
+class MapDBStore<T : Any>(private val db: DB, private val name: String, private val serializer: KSerializer<T>) : Store<T> {
     private val map: HTreeMap<String, ByteArray> = db
             .hashMap(name, Serializer.STRING, Serializer.BYTE_ARRAY)
             .createOrOpen()
