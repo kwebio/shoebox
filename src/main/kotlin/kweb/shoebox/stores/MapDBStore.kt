@@ -14,7 +14,12 @@ import org.mapdb.Serializer
 @ExperimentalSerializationApi
 class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSerializer<T>) : Store<T> {
 
-    private val map = db.hashMap(name).keySerializer(Serializer.STRING).valueSerializer(Serializer.BYTE_ARRAY).create()
+    private val map =
+            db
+                    .hashMap(name)
+                    .keySerializer(Serializer.STRING)
+                    .valueSerializer(Serializer.BYTE_ARRAY)
+                    .createOrOpen()
 
     override val entries: Iterable<KeyValue<T>>
         get() = map.map { (k, v) ->
