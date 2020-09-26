@@ -14,6 +14,8 @@ import org.mapdb.Serializer
 @ExperimentalSerializationApi
 class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSerializer<T>) : Store<T> {
 
+    private val protoBuf = ProtoBuf { encodeDefaults = false }
+
     private val map =
             db
                     .hashMap(name)
@@ -31,7 +33,7 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
         return if (v == null) {
             null
         } else {
-            ProtoBuf.decodeFromByteArray(serializer, v)
+            protoBuf.decodeFromByteArray(serializer, v)
         }
     }
 
@@ -40,7 +42,7 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
         return if (v == null) {
             null
         } else {
-            ProtoBuf.decodeFromByteArray(serializer, v)
+            protoBuf.decodeFromByteArray(serializer, v)
         }
     }
 
@@ -50,7 +52,7 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
         return if (v == null) {
             null
         } else {
-            ProtoBuf.decodeFromByteArray(serializer, v)
+            protoBuf.decodeFromByteArray(serializer, v)
         }
     }
 }
