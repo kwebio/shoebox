@@ -5,12 +5,16 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.protobuf.ProtoBuf
 import kweb.shoebox.KeyValue
 import kweb.shoebox.Store
+import org.mapdb.DB
+import org.mapdb.Serializer
 
 /**
  * Created by ian on 3/22/17.
  */
 @ExperimentalSerializationApi
-class MapStore<T : Any>(private val map : MutableMap<String, ByteArray>, private val serializer: KSerializer<T>) : Store<T> {
+class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSerializer<T>) : Store<T> {
+
+    private val map = db.hashMap(name).keySerializer(Serializer.STRING).valueSerializer(Serializer.BYTE_ARRAY).create()
 
     override val entries: Iterable<KeyValue<T>>
         get() = map.map { (k, v) ->

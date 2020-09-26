@@ -20,7 +20,7 @@ val defaultGson: Gson = Converters.registerAll(GsonBuilder()).let {
     it.registerTypeAdapter(object : TypeToken<Duration>() {}.type, DurationConverter())
 }.create()
 */
-@Deprecated("Should be used via MapStore")
+@Deprecated("Use MapDBStore instead")
 class LmdbStore<T : Any>(val name: String, private val kSerializer: KSerializer<T>) : Store<T> {
 
     companion object {
