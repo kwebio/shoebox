@@ -5,18 +5,12 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.protobuf.ProtoBuf
 import kweb.shoebox.KeyValue
 import kweb.shoebox.Store
-import org.mapdb.DB
-import org.mapdb.HTreeMap
-import org.mapdb.Serializer
 
 /**
  * Created by ian on 3/22/17.
  */
 @ExperimentalSerializationApi
-class MapDBStore<T : Any>(private val db: DB, private val name: String, private val serializer: KSerializer<T>) : Store<T> {
-    private val map: HTreeMap<String, ByteArray> = db
-            .hashMap(name, Serializer.STRING, Serializer.BYTE_ARRAY)
-            .createOrOpen()
+class MapStore<T : Any>(private val map : MutableMap<String, ByteArray>, private val name: String, private val serializer: KSerializer<T>) : Store<T> {
 
     override val entries: Iterable<KeyValue<T>>
         get() = map.map { (k, v) ->
@@ -33,7 +27,7 @@ class MapDBStore<T : Any>(private val db: DB, private val name: String, private 
     }
 
     override fun get(key: String): T? {
-        val v = map.get(key)
+        val v = map[key]
         return if (v == null) {
             null
         } else {
@@ -42,9 +36,8 @@ class MapDBStore<T : Any>(private val db: DB, private val name: String, private 
     }
 
     override fun set(key: String, value: T): T? {
-        val v = map.get(key)
+        val v = map[key]
         map.set(key, ProtoBuf.encodeToByteArray(serializer, value))
-        db.commit()
         return if (v == null) {
             null
         } else {
