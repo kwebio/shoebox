@@ -10,7 +10,7 @@ import kweb.shoebox.Store
  * Created by ian on 3/22/17.
  */
 @ExperimentalSerializationApi
-class MapStore<T : Any>(private val map : MutableMap<String, ByteArray>, private val name: String, private val serializer: KSerializer<T>) : Store<T> {
+class MapStore<T : Any>(private val map : MutableMap<String, ByteArray>, private val serializer: KSerializer<T>) : Store<T> {
 
     override val entries: Iterable<KeyValue<T>>
         get() = map.map { (k, v) ->
