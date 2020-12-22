@@ -10,6 +10,7 @@ import kweb.shoebox.stores.LmdbStore
 import kweb.shoebox.stores.MapDBStore
 import kweb.shoebox.stores.MemoryStore
 import java.nio.file.Path
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 
@@ -20,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap
 * TODO:    (then remove the previous lockfile mechanism)
 */
 
-fun <T : Any> shoebox(dir : Path, kSerializer: KSerializer<T>) = Shoebox(DirectoryStore(dir, kSerializer))
+fun <T : Any> shoebox(dir: Path, kSerializer: KSerializer<T>) = Shoebox(DirectoryStore(dir, kSerializer))
 
 /**
  * Can persistently store and retrieve objects, and notify listeners of changes to those objects
@@ -58,7 +59,7 @@ class Shoebox<T : Any>(val store: Store<T>) {
      *
      * @param key The key associated with the value to be removed, similar to [MutableMap.remove]
      */
-    fun remove(key: String) : T? {
+    fun remove(key: String): T? {
         val removed = store.remove(key)
         if (removed != null) {
             removeListeners.values.forEach { it.invoke(KeyValue(key, removed), LOCAL) }
@@ -94,16 +95,20 @@ class Shoebox<T : Any>(val store: Store<T>) {
         }
     }
 
+    val keysForSynchronization = WeakHashMap<String, String>()
     /**
-     * A utility method to make it easier to modify an existing item
+     * A utility method to make it easier to modify an existing item, atomically
      */
-    fun modify(key : String, modifier : (T) -> T) : Boolean {
-        val oldValue = this[key]
-        return if (oldValue == null) {
-            false
-        } else {
-            this[key] = modifier(oldValue)
-            true
+    fun modify(key: String, modifier: (T) -> T): Boolean {
+        val keyForSync = keysForSynchronization.computeIfAbsent(key) { key }
+        synchronized(keyForSync) {
+            val oldValue = this[key]
+            return if (oldValue == null) {
+                false
+            } else {
+                this[key] = modifier(oldValue)
+                true
+            }
         }
     }
 
@@ -114,43 +119,43 @@ class Shoebox<T : Any>(val store: Store<T>) {
      *
      * @param listener The listener to be called
      */
-    fun onNew(listener: (KeyValue<T>, Source) -> Unit) : Long {
+    fun onNew(listener: (KeyValue<T>, Source) -> Unit): Long {
         val handle = listenerHandleSource.incrementAndGet()
         newListeners.put(handle, listener)
         return handle
     }
 
-    fun deleteNewListener(handle : Long) {
+    fun deleteNewListener(handle: Long) {
         newListeners.remove(handle)
     }
 
-    fun onRemove(listener: (KeyValue<T>, Source) -> Unit) : Long {
+    fun onRemove(listener: (KeyValue<T>, Source) -> Unit): Long {
         val handle = listenerHandleSource.incrementAndGet()
         removeListeners.put(handle, listener)
         return handle
     }
 
-    fun deleteRemoveListener(handle : Long) {
+    fun deleteRemoveListener(handle: Long) {
         removeListeners.remove(handle)
     }
 
-    fun onChange(listener: (T, KeyValue<T>, Source) -> Unit) : Long {
+    fun onChange(listener: (T, KeyValue<T>, Source) -> Unit): Long {
         val handle = listenerHandleSource.incrementAndGet()
         changeListeners.put(handle, listener)
         return handle
     }
 
-    fun onChange(key: String, listener: (T, T, Source) -> Unit) : Long {
+    fun onChange(key: String, listener: (T, T, Source) -> Unit): Long {
         val handle = listenerHandleSource.incrementAndGet()
         keySpecificChangeListeners.computeIfAbsent(key, { ConcurrentHashMap() }).put(handle, listener)
         return handle
     }
 
-    fun deleteChangeListener(handle : Long) {
+    fun deleteChangeListener(handle: Long) {
         changeListeners.remove(handle)
     }
 
-    fun deleteChangeListener(key: String, handle : Long) {
+    fun deleteChangeListener(key: String, handle: Long) {
         keySpecificChangeListeners[key]?.let {
             it.remove(handle)
             if (it.isEmpty()) {
@@ -159,7 +164,11 @@ class Shoebox<T : Any>(val store: Store<T>) {
         }
     }
 
-    fun view(name : String, by : (T) -> String, verify : VerifyBehavior = BLOCKING_VERIFY) : View<T> {
+    fun atomicModify(modification: (T) -> T) {
+
+    }
+
+    fun view(name: String, by: (T) -> String, verify: VerifyBehavior = BLOCKING_VERIFY): View<T> {
         val store = when (store) {
             is MemoryStore<T> -> MemoryStore<Reference>()
             is DirectoryStore<T> ->
@@ -180,6 +189,7 @@ enum class Source {
      * The event was due to a modification initiated by a call to this instance's [Shoebox.set]
      */
     LOCAL,
+
     /**
      * The event was due to a filesystem change external to this instance
      */
