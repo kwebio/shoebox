@@ -16,7 +16,7 @@ import org.mapdb.Serializer
 @ExperimentalSerializationApi
 class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSerializer<T>) : Store<T> {
 
-    private val map =
+    val map =
             db
                     .hashMap(name)
                     .keySerializer(Serializer.STRING)

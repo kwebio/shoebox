@@ -12,7 +12,7 @@
       <entry name="!?*.kt" />
       <entry name="!?*.clj" />
     </wildcardResourcePatterns>
-    <bytecodeTargetLevel target="14">
+    <bytecodeTargetLevel target="12">
       <module name="kweb.shoebox" target="11" />
     </bytecodeTargetLevel>
   </component>
