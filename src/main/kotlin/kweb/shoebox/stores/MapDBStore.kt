@@ -2,8 +2,6 @@ package kweb.shoebox.stores
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import kweb.shoebox.KeyValue
 import kweb.shoebox.Store
@@ -20,7 +18,7 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
         db
             .hashMap(name)
             .keySerializer(Serializer.STRING)
-            .valueSerializer(Serializer.STRING)
+            .valueSerializer(Serializer.BYTE_ARRAY)
             .createOrOpen()
     } else {
         db
@@ -28,13 +26,13 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
             .expireStoreSize(maxSizeBytes)
             .expireAfterGet()
             .keySerializer(Serializer.STRING)
-            .valueSerializer(Serializer.STRING)
+            .valueSerializer(Serializer.BYTE_ARRAY)
             .createOrOpen()
     }
 
     override val entries: Iterable<KeyValue<T>>
         get() = map.map { (k, v) ->
-            KeyValue(k, Json.decodeFromString(serializer, v))
+            KeyValue(k, ProtoBuf.decodeFromByteArray(serializer, v))
         }
 
     override fun remove(key: String): T? {
@@ -42,7 +40,7 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
         return if (v == null) {
             null
         } else {
-            Json.decodeFromString(serializer, v)
+            ProtoBuf.decodeFromByteArray(serializer, v)
         }
     }
 
@@ -51,17 +49,17 @@ class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSeria
         return if (v == null) {
             null
         } else {
-            Json.decodeFromString(serializer, v)
+            ProtoBuf.decodeFromByteArray(serializer, v)
         }
     }
 
     override fun set(key: String, value: T): T? {
         val v = map[key]
-        map.set(key, Json.encodeToString(serializer, value))
+        map.set(key, ProtoBuf.encodeToByteArray(serializer, value))
         return if (v == null) {
             null
         } else {
-            Json.decodeFromString(serializer, v)
+            ProtoBuf.decodeFromByteArray(serializer, v)
         }
     }
 }
