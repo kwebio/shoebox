@@ -14,14 +14,23 @@ import org.mapdb.Serializer
  * Created by ian on 3/22/17.
  */
 @ExperimentalSerializationApi
-class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSerializer<T>) : Store<T> {
+class MapDBStore<T : Any>(val db : DB, val name : String, val serializer: KSerializer<T>, val maxSizeBytes : Long? = null) : Store<T> {
 
-    val map =
-            db
-                    .hashMap(name)
-                    .keySerializer(Serializer.STRING)
-                    .valueSerializer(Serializer.STRING)
-                    .createOrOpen()
+    val map = if (maxSizeBytes == null) {
+        db
+            .hashMap(name)
+            .keySerializer(Serializer.STRING)
+            .valueSerializer(Serializer.STRING)
+            .createOrOpen()
+    } else {
+        db
+            .hashMap(name)
+            .expireStoreSize(maxSizeBytes)
+            .expireAfterGet()
+            .keySerializer(Serializer.STRING)
+            .valueSerializer(Serializer.STRING)
+            .createOrOpen()
+    }
 
     override val entries: Iterable<KeyValue<T>>
         get() = map.map { (k, v) ->
