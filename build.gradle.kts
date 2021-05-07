@@ -1,11 +1,12 @@
 plugins {
     kotlin("jvm") version "1.5.0"
+    `maven-publish`
     kotlin("plugin.serialization") version "1.5.0"
     id("com.github.ben-manes.versions") version "0.38.0"
 }
 
 group = "kweb"
-version = "0.4.13"
+version = "0.4.14"
 
 repositories {
     mavenCentral()
