@@ -77,5 +77,5 @@ fun main() {
 
 ### Documentation
 * API
-  * [0.4.12](https://jitpack.io/com/github/sanity/shoebox/0.4.12/javadoc/)
+  * [0.2.19](https://jitpack.io/com/github/sanity/shoebox/0.2.10/javadoc/)
   * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)
