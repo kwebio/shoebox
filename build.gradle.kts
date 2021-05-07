@@ -23,3 +23,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:4.5.0")
     testImplementation("io.kotest:kotest-property:4.5.0")
 }
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
