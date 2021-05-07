@@ -45,7 +45,7 @@ Shoebox can be added easily to your Maven or Gradle project through Jitpack:
 
 As of release 0.4.0 Shoebox uses Kotlin Serialization, so you will also need to add [the serialization plugin](https://github.com/Kotlin/kotlinx.serialization#gradle) to your project.
 
-### Usage Example
+### Simple Usage Example
 ```kotlin
 fun main() {
     val dir = Files.createTempDirectory("sb-")
@@ -77,5 +77,5 @@ fun main() {
 
 ### Documentation
 * API
-  * [0.2.19](https://jitpack.io/com/github/sanity/shoebox/0.2.10/javadoc/)
+  * [0.4.12](https://jitpack.io/com/github/sanity/shoebox/0.4.12/javadoc/)
   * [SNAPSHOT](https://jitpack.io/com/github/sanity/shoebox/-SNAPSHOT/javadoc/) (might be slow to load)
