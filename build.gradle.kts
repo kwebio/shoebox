@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "kweb"
-version = "0.4.14"
+version = "0.4.15"
 
 repositories {
     mavenCentral()
