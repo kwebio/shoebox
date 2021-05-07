@@ -6,7 +6,6 @@ import kweb.shoebox.View.Reference
 import kweb.shoebox.View.VerifyBehavior
 import kweb.shoebox.View.VerifyBehavior.BLOCKING_VERIFY
 import kweb.shoebox.stores.DirectoryStore
-import kweb.shoebox.stores.LmdbStore
 import kweb.shoebox.stores.MapDBStore
 import kweb.shoebox.stores.MemoryStore
 import java.nio.file.Path
@@ -174,7 +173,6 @@ class Shoebox<T : Any>(val store: Store<T>) {
             is DirectoryStore<T> ->
                 DirectoryStore(store.directory.parent.resolve("${store.directory.fileName}-$name-view"), Reference.serializer())
             is MapDBStore<T> -> MapDBStore(store.db, "${store.name}-$name-view", Reference.serializer())
-            is LmdbStore<T> -> LmdbStore("${store.name}-$name-view", Reference.serializer())
             else -> throw RuntimeException("Shoebox doesn't currently support creating a view for store type ${store::class.simpleName}")
         }
         return View<T>(Shoebox(store), this, verify, by)

@@ -5,7 +5,7 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.CacheLoader.InvalidCacheLoadException
 import com.google.common.cache.LoadingCache
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 import kweb.shoebox.*
 import java.net.URLDecoder
 import java.nio.file.Files
@@ -15,6 +15,8 @@ import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import kotlin.io.path.inputStream
+import kotlin.io.path.outputStream
 
 /**
  * Created by ian on 3/22/17.
@@ -37,8 +39,8 @@ class DirectoryStore<T : Any>(val directory: Path, private val kSerializer: KSer
                         if (Files.isDirectory(filePath)) {
                             throw IllegalStateException("File $filePath is a directory, not a file")
                         }
-                        val o = filePath.newBufferedReader().use {
-                            Json.decodeFromString(kSerializer, it.readText())
+                        val o = filePath.inputStream().use {
+                            ProtoBuf.decodeFromByteArray(kSerializer, it.readAllBytes())
                         }
                         CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
                     } else {
@@ -136,8 +138,8 @@ class DirectoryStore<T : Any>(val directory: Path, private val kSerializer: KSer
         if (value != previousValue) {
             if (!directory.exists()) throw RuntimeException("Parent directory doesn't exist")
             val filePath = toPath(key)
-            filePath.newBufferedWriter().use {
-                it.write(Json.encodeToString(kSerializer, value))
+            filePath.outputStream().use {
+                it.write(ProtoBuf.encodeToByteArray(kSerializer, value))
             }
         }
         return previousValue
