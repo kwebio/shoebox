@@ -52,9 +52,9 @@ dependencies {
     implementation 'com.google.guava:guava:27.1-jre'
     implementation 'net.incongru.watchservice:barbary-watchservice:1.0'
     implementation 'org.lmdbjava:lmdbjava:0.7.0'
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC"
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.0.0-RC"
-    compile "org.mapdb:mapdb:3.0.8"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.2.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.2.0"
+    implementation "org.mapdb:mapdb:3.0.8"
 
     testImplementation "io.kotest:kotest-runner-junit5-jvm:4.2.3"
     testImplementation "io.kotest:kotest-assertions-core-jvm:4.2.3"
