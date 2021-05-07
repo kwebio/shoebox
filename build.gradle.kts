@@ -6,8 +6,8 @@ plugins {
     id("com.github.ben-manes.versions") version "0.38.0"
 }
 
-group = "kweb"
-version = "0.4.19"
+group = "com.github.kwebio"
+version = "0.4.20"
 
 repositories {
     mavenCentral()
