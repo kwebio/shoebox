@@ -25,6 +25,12 @@ dependencies {
     testImplementation("io.kotest:kotest-property:4.5.0")
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }
