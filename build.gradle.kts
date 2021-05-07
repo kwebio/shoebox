@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "kweb"
-version = "0.4.15"
+version = "0.4.16"
 
 repositories {
     mavenCentral()
@@ -28,7 +28,7 @@ dependencies {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "12"
     }
 }
 
