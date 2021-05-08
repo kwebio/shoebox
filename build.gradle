@@ -9,17 +9,16 @@ buildscript {
 }
 
 plugins {
-    id 'java'
+    id 'java-library'
     id 'maven-publish'
     id "org.jetbrains.kotlin.jvm" version '1.5.0'
     id 'org.jetbrains.dokka' version '1.4.32'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id "com.github.ben-manes.versions" version "0.38.0"
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.5.0'
 }
 
-group 'kweb'
-version '0.4.32'
+group 'com.github.kwebio'
+version '0.4.33'
 
 repositories {
     mavenCentral()
