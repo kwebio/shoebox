@@ -32,7 +32,6 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.0"
     implementation 'com.google.guava:guava:30.1.1-jre'
     implementation 'net.incongru.watchservice:barbary-watchservice:1.0'
-    implementation 'org.lmdbjava:lmdbjava:0.8.1'
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-core:1.2.0"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.2.0"
     implementation "org.mapdb:mapdb:3.0.8"
