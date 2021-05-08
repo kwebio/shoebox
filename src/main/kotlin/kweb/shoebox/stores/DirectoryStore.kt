@@ -40,7 +40,7 @@ class DirectoryStore<T : Any>(val directory: Path, private val kSerializer: KSer
                             throw IllegalStateException("File $filePath is a directory, not a file")
                         }
                         val o = filePath.inputStream().use {
-                            ProtoBuf.decodeFromByteArray(kSerializer, it.readAllBytes())
+                            ProtoBuf.decodeFromByteArray(kSerializer, it.readBytes())
                         }
                         CachedValueWithTime(o, Files.getLastModifiedTime(filePath).toInstant())
                     } else {
