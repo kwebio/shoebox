@@ -1,6 +1,6 @@
 # ShoeBox
 
-[![](https://jitpack.io/v/kwebio/shoebox.svg)](https://jitpack.io/#kwebio/shoebox) [![Build Status](https://github.com/kwebio/shoebox/workflows/build.yml/badge.svg?branch=master)](https://github.com/kwebio/shoebox/actions?query=branch%3Amaster+workflow%3Atests)
+[![](https://jitpack.io/v/kwebio/shoebox.svg)](https://jitpack.io/#kwebio/shoebox)
 
 
 ShoeBox is a [Kotlin](http://kotlinlang.org/) library for object persistence that supports the 
