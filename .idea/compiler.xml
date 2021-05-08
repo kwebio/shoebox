@@ -13,7 +13,6 @@
       <entry name="!?*.clj" />
     </wildcardResourcePatterns>
     <bytecodeTargetLevel target="12">
-      <module name="com.github.kwebio.shoebox" target="11" />
       <module name="kweb.shoebox" target="11" />
     </bytecodeTargetLevel>
   </component>
